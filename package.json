@@ -22,5 +22,8 @@
   "bugs": {
     "url": "https://github.com/gamalielmendez/fpdf_js/issues"
   },
-  "homepage": "https://github.com/gamalielmendez/fpdf_js#readme"
+  "homepage": "https://github.com/gamalielmendez/fpdf_js#readme",
+  "dependencies": {
+    "sprintf-js": "^1.1.2"
+  }
 }
