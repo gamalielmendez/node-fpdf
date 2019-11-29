@@ -1,0 +1,26 @@
+{
+  "name": "fpdf_js",
+  "version": "1.0.0",
+  "description": "port de la librerida de FPDF de PHP",
+  "main": "fpdf.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "node ./test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gamalielmendez/fpdf_js.git"
+  },
+  "keywords": [
+    "PDF",
+    "FPDF"
+  ],
+  "author": "Gamaliel Mendez",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gamalielmendez/fpdf_js/issues"
+  },
+  "homepage": "https://github.com/gamalielmendez/fpdf_js#readme"
+}
