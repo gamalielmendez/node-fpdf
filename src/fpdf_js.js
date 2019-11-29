@@ -31,11 +31,13 @@ module.exports = class FPDF {
         this.ColorFlag = false;
         this.WithAlpha = false;
         this.ws = 0;
+        this.enc =''
+        this.subsetted=''
 
         if (fontpath !== '') {
 
             this.fontpath = fontpath
-            if (this.fontpath.charAt(this.fontpath.length - 1) != "/") {
+            if (this.fontpath.charAt(this.fontpath.length - 1) !== "/") {
                 this.fontpath += "/"
             }
 
@@ -122,7 +124,135 @@ module.exports = class FPDF {
         // Set default PDF version number
         this.PDFVersion = '1.3'
     }
+   
+    AddFont(family='', style='', file=''){
+        
+        // Add a TrueType, OpenType or Type1 font
+        family=family.toLowerCase()
+        if(file==''){ file =`${family.replace(' ','')}${style.toLowerCase()}.js` }
+        
+        style =style.toUpperCase()
+        if(style==='IB'){ style = 'BI' }
+
+        const fontkey = family+style;
+        if(typeof this.fonts[fontkey]!=='undefined'){
+            return
+        }
+        
+        const info = this._loadfont(file) 
+        info['i']=(this.fonts.length+1)
+
+        if(typeof info['file']!=='undefined'){
+            
+            if(info.type==='TrueType'){
+                this.FontFiles[info['file']]={'length1':info['originalsize']}
+            }else{
+                this.FontFiles[info['file']]={'length1':info['size1'],'length2':info['size2']}   
+            }
+        }
+
+        this.fonts[fontkey]=info
+    }
+
+    AddLink(){
+        
+        // Create a new internal link
+        const n =(this.links.length+1) 
+        this.links[n] = [0, 0]
+        return n;
+
+    }
+
+    AddPage(orientation='', size='', rotation=0){
+
+        if(this.state===3){
+            throw "The document is closed"
+        }
+
+        const family = this.FontFamily;
+        const style = this.FontStyle+(this.underline ? 'U' : '');
+        const fontsize = this.FontSizePt;
+        const lw = this.LineWidth;
+        const dc = this.DrawColor;
+        const fc = this.FillColor;
+        const tc = this.TextColor;
+        const cf = this.ColorFlag;
+    }
+
+/*
+
+function AddPage($orientation='', $size='', $rotation=0)
+{
+	// Start a new page
+	if($this->state==3)
+		$this->Error('The document is closed');
     
+    $family = $this->FontFamily;
+	$style = $this->FontStyle.($this->underline ? 'U' : '');
+	$fontsize = $this->FontSizePt;
+	$lw = $this->LineWidth;
+	$dc = $this->DrawColor;
+	$fc = $this->FillColor;
+	$tc = $this->TextColor;
+    $cf = $this->ColorFlag;
+    
+	if($this->page>0)
+	{
+		// Page footer
+		$this->InFooter = true;
+		$this->Footer();
+		$this->InFooter = false;
+		// Close page
+		$this->_endpage();
+	}
+	// Start new page
+	$this->_beginpage($orientation,$size,$rotation);
+	// Set line cap style to square
+	$this->_out('2 J');
+	// Set line width
+	$this->LineWidth = $lw;
+	$this->_out(sprintf('%.2F w',$lw*$this->k));
+	// Set font
+	if($family)
+		$this->SetFont($family,$style,$fontsize);
+	// Set colors
+	$this->DrawColor = $dc;
+	if($dc!='0 G')
+		$this->_out($dc);
+	$this->FillColor = $fc;
+	if($fc!='0 g')
+		$this->_out($fc);
+	$this->TextColor = $tc;
+	$this->ColorFlag = $cf;
+	// Page header
+	$this->InHeader = true;
+	$this->Header();
+	$this->InHeader = false;
+	// Restore line width
+	if($this->LineWidth!=$lw)
+	{
+		$this->LineWidth = $lw;
+		$this->_out(sprintf('%.2F w',$lw*$this->k));
+	}
+	// Restore font
+	if($family)
+		$this->SetFont($family,$style,$fontsize);
+	// Restore colors
+	if($this->DrawColor!=$dc)
+	{
+		$this->DrawColor = $dc;
+		$this->_out($dc);
+	}
+	if($this->FillColor!=$fc)
+	{
+		$this->FillColor = $fc;
+		$this->_out($fc);
+	}
+	$this->TextColor = $tc;
+	$this->ColorFlag = $cf;
+}
+*/
+
     SetCompression(xcompress) {
        
         if (this.function_exists("gzcompress")){
@@ -206,6 +336,27 @@ module.exports = class FPDF {
 
     function_exists(name){
         return false;
+    }
+
+    _loadfont(font){
+
+        if(font.indexOf("/") !==-1 || font.indexOf("\\") !==-1){
+            throw `Incorrect font definition file name:.`  
+        }
+
+        const ftn=require(`${this.fontpath}${font}`)
+        if(typeof ftn.name ==="undefined"){
+            throw `Could not include font definition file`
+        }
+
+        if(typeof ftn.enc !=="undefined"){
+            this.enc=ftn.enc
+        }
+        if(typeof ftn.subsetted !=="undefined"){
+            this.subsetted=ftn.subsetted
+        }
+        return ftn
+
     }
 
 }
