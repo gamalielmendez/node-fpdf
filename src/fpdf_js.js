@@ -42,8 +42,8 @@ module.exports = class FPDF {
         this.PageLinks = {}
         this.AliasNbPages = ''
         this.offsets = {}
-        this.metadata={}
-        this.ZoomMode=''
+        this.metadata = {}
+        this.ZoomMode = ''
 
         if (fontpath !== '') {
 
@@ -151,7 +151,7 @@ module.exports = class FPDF {
         }
 
         const info = this._loadfont(file)
-        info['i'] = ( Object.keys(this.fonts).length  + 1)
+        info['i'] = (Object.keys(this.fonts).length + 1)
 
         if (typeof info['file'] !== 'undefined') {
 
@@ -328,7 +328,7 @@ module.exports = class FPDF {
 
         // Output a cell
         const k = this.k;
-        let x,ws
+        let x,y, ws
 
         if (this.y + h > this.PageBreakTrigger && this.InHeader && this.InFooter && this.AcceptPageBreak()) {
             // Automatic page break
@@ -370,22 +370,22 @@ module.exports = class FPDF {
             x = this.x;
             y = this.y;
 
-            if (border.indexOf('L') !== -1){
+            if (border.indexOf('L') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, x * k, (this.h - (y + h)) * k);
             }
-                
-            if (border.indexOf('T') !== -1){
+
+            if (border.indexOf('T') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, (x + w) * k, (this.h - y) * k);
             }
-                
-            if (border.indexOf('R') !== -1){
+
+            if (border.indexOf('R') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', (x + w) * k, (this.h - y) * k, (x + w) * k, (this.h - (y + h)) * k);
             }
-                
-            if (border.indexOf('B') !== -1){
+
+            if (border.indexOf('B') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - (y + h)) * k, (x + w) * k, (this.h - (y + h)) * k);
             }
-                
+
         }
 
         if (txt !== '') {
@@ -402,17 +402,17 @@ module.exports = class FPDF {
             } else {
                 dx = this.cMargin;
             }
-         
+            
             if (this.ColorFlag) { s += 'q ' + this.TextColor + ' ' }
 
             s += sprintf('BT %.2f %.2f Td (%s) Tj ET', (this.x + dx) * k, (this.h - (this.y + 0.5 * h + 0.3 * this.FontSize)) * k, this._escape(txt));
 
             if (this.underline) { s += ' ' + this._dounderline(this.x + dx, this.y + 0.5 * h + 0.3 * this.FontSize, txt) }
             if (this.ColorFlag) { s += ' Q' }
-            if (link !=='') { this.Link(this.x + dx, this.y + 0.5 * h - 0.5 * this.FontSize, this.GetStringWidth(txt), this.FontSize, link) }
+            if (link !== '') { this.Link(this.x + dx, this.y + 0.5 * h - 0.5 * this.FontSize, this.GetStringWidth(txt), this.FontSize, link) }
 
         }
-        
+
         if (s) { this._out(s) }
         this.lasth = h;
 
@@ -427,7 +427,7 @@ module.exports = class FPDF {
         } else {
             this.x += w;
         }
-       
+
     }
 
     Close() {
@@ -615,7 +615,7 @@ module.exports = class FPDF {
     }
 
     _out(s) {
-        
+
         // Add a line to the document
         if (this.state === 2) {
             this.pages[this.page] += s + "\n";
@@ -656,7 +656,6 @@ module.exports = class FPDF {
     _escape(s) {
         // Escape special characters
         return s.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\\/g, '\\\\');
-
     }
 
     _dounderline(x, y, txt) {
@@ -700,7 +699,7 @@ module.exports = class FPDF {
             entries = '';
         }
 
-        entries += `/Length ${data.length }`;
+        entries += `/Length ${data.length}`;
         this._newobj();
         this._put('<<' + entries + '>>');
         this._putstream(data);
@@ -812,18 +811,18 @@ module.exports = class FPDF {
 
     _tounicodecmap(uv) {
 
-        let ranges='' 
-        let nbr=0
-        let chars=''
-        let nbc=0
+        let ranges = ''
+        let nbr = 0
+        let chars = ''
+        let nbc = 0
 
         for (const key in uv) {
-            
-            if(typeof uv[key]==='number'){
-                chars+=sprintf("<%02X> <%04X>\n",key,uv[key])   
+
+            if (typeof uv[key] === 'number') {
+                chars += sprintf("<%02X> <%04X>\n", key, uv[key])
                 nbc++
-            }else{
-                ranges += sprintf("<%02X> <%02X> <%04X>\n",key,key+uv[key][1]-1,uv[key][0]);
+            } else {
+                ranges += sprintf("<%02X> <%02X> <%04X>\n", key, key + uv[key][1] - 1, uv[key][0]);
                 nbr++;
             }
 
@@ -843,13 +842,13 @@ module.exports = class FPDF {
         $s += "<00> <FF>\n";
         $s += "endcodespacerange\n";
 
-        if(nbr>0){
+        if (nbr > 0) {
             $s += `${nbr} beginbfrange\n`;
             $s += ranges;
             $s += "endbfrange\n";
         }
-        
-        if(nbc>0){
+
+        if (nbc > 0) {
             $s += `${nbc} beginbfchar\n`;
             $s += chars;
             $s += "endbfchar\n";
@@ -859,7 +858,7 @@ module.exports = class FPDF {
         $s += "CMapName currentdict /CMap defineresource pop\n";
         $s += "end\n";
         $s += "end";
-        
+
         return $s;
 
     }
@@ -885,7 +884,7 @@ module.exports = class FPDF {
 
             // ToUnicode CMap
             let cmapkey
-            if (typeof font['uv'] !== 'undefined') {   
+            if (typeof font['uv'] !== 'undefined') {
                 if (typeof font['enc'] !== 'undefined') {
                     cmapkey = font['enc']
                 } else {
@@ -898,80 +897,80 @@ module.exports = class FPDF {
                     this.cmaps[cmapkey] = this.n;
                 }
             }
-            
+
             // Font object
-            this.fonts[key]['n'] = this.n+1;
+            this.fonts[key]['n'] = this.n + 1;
             const type = font['type'];
             let name = font['name'];
-            if(font['subsetted']){ name = 'AAAAAA+'+name }
+            if (font['subsetted']) { name = 'AAAAAA+' + name }
 
-            if(type=='Core'){
-                
+            if (type == 'Core') {
+
                 // Core font
                 this._newobj();
                 this._put('<</Type /Font');
-                this._put('/BaseFont /'+name);
+                this._put('/BaseFont /' + name);
                 this._put('/Subtype /Type1');
-                
-                if(name!=='Symbol' && name!=='ZapfDingbats'){ this._put('/Encoding /WinAnsiEncoding') }
-                if(typeof font['uv']!=='undefined'){ this._put(`/ToUnicode ${this.cmaps[cmapkey]} 0 R`) }
+
+                if (name !== 'Symbol' && name !== 'ZapfDingbats') { this._put('/Encoding /WinAnsiEncoding') }
+                if (typeof font['uv'] !== 'undefined') { this._put(`/ToUnicode ${this.cmaps[cmapkey]} 0 R`) }
 
                 this._put('>>');
                 this._put('endobj');
 
-            }else if(type==='Type1' || type==='TrueType'){
-                
+            } else if (type === 'Type1' || type === 'TrueType') {
+
                 // Additional Type1 or TrueType/OpenType font
                 this._newobj();
                 this._put('<</Type /Font');
-                this._put('/BaseFont /'+name);
-                this._put('/Subtype /'+type);
+                this._put('/BaseFont /' + name);
+                this._put('/Subtype /' + type);
                 this._put('/FirstChar 32 /LastChar 255');
-                this._put(`/Widths ${this.n+1} 0 R`);
-                this._put(`/FontDescriptor ${this.n+2} 0 R`);
-                
-                if(typeof font['diff']!=='undefined'){
+                this._put(`/Widths ${this.n + 1} 0 R`);
+                this._put(`/FontDescriptor ${this.n + 2} 0 R`);
+
+                if (typeof font['diff'] !== 'undefined') {
                     this._put(`/Encoding ${this.encodings[font['enc']]} 0 R`);
-                }else{
+                } else {
                     this._put('/Encoding /WinAnsiEncoding');
                 }
-                 //isset($font['uv'])   
-                if(typeof font['uv'] !=='undefined'){
+                //isset($font['uv'])   
+                if (typeof font['uv'] !== 'undefined') {
                     this._put(`/ToUnicode ${this.cmaps[$mapkey]} 0 R`);
                 }
-                    
+
                 this._put('>>');
                 this._put('endobj');
                 // Widths
                 this._newobj();
                 const cw = font['cw'];
                 let s = '[';
-                for(let $i=32;$i<=255;$i++){
+                for (let $i = 32; $i <= 255; $i++) {
                     s += `${cw[String.fromCharCode($i)]} `;
                 }
-                    
-                this._put(s+']');
+
+                this._put(s + ']');
                 this._put('endobj');
-                
+
                 // Descriptor
                 this._newobj();
-                s = '<</Type /FontDescriptor /FontName /'+$name;
-                
+                s = '<</Type /FontDescriptor /FontName /' + $name;
+
                 for (const key2 in font['desc']) {
                     s += ` /${key2} ${font['desc'][key2]}`;
-                } 
-
-                if(!empty($font['file'])){
-                    s += ` /FontFile${(type=='Type1')? '' : '2'} ${this.FontFiles[font['file']]['n']} 0 R`
                 }
-                    
-                this._put(s+'>>');
+
+                if (!empty($font['file'])) {
+                    s += ` /FontFile${(type == 'Type1') ? '' : '2'} ${this.FontFiles[font['file']]['n']} 0 R`
+                }
+
+                this._put(s + '>>');
                 this._put('endobj');
 
-            }else{
+            } else {
                 // Allow for additional types
-                let mtd = '_put'+type.toLowerCase()  
-                if (typeof this[mtd] === 'undefined') { 
+                let mtd = '_put' + type.toLowerCase()
+                if (typeof this[mtd] === 'undefined') {
                     throw 'Unsupported font type: '
                 }
                 this[mtd](font);
@@ -980,7 +979,7 @@ module.exports = class FPDF {
 
     }
 
-    _putimages(){
+    _putimages() {
         /*   
         foreach(array_keys($this->images) as $file){
             $this->_putimage($this->images[$file]);
@@ -989,9 +988,9 @@ module.exports = class FPDF {
         }
         */
     }
-    
-    _putxobjectdict(){
-        
+
+    _putxobjectdict() {
+
         for (const key in this.images) {
             const image = this.images[key]
             this._put(`/I${image['i']} ${image['n']} 0 R`);
@@ -999,11 +998,11 @@ module.exports = class FPDF {
 
     }
 
-    _putresourcedict(){
-        
+    _putresourcedict() {
+
         this._put('/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]');
         this._put('/Font <<');
-        
+
         for (const key in this.fonts) {
             const font = this.fonts[key]
             this._put(`/F${font['i']} ${font['n']} 0 R`);
@@ -1014,7 +1013,7 @@ module.exports = class FPDF {
         this._putxobjectdict();
         this._put('>>');
     }
-    
+
     _putresources() {
 
         this._putfonts();
@@ -1028,51 +1027,51 @@ module.exports = class FPDF {
 
     }
 
-    _putinfo(){
-        
-        this.metadata['Producer'] = 'FPDF '+this.PDFVersion;
+    _putinfo() {
+
+        this.metadata['Producer'] = 'FPDF ' + this.PDFVersion;
         var date = new Date();
         var YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
         this.metadata['CreationDate'] = "D:" + YYYYMMDDHHMMSS
-        
-        
+
+
         for (const key in this.metadata) {
             const value = this.metadata[key]
             this._put(`/${key} ${this._textstring(value)}`);
         }
-   
+
     }
 
-    _putcatalog(){
+    _putcatalog() {
 
         const n = this.PageInfo[1]['n'];
         this._put('/Type /Catalog');
         this._put('/Pages 1 0 R');
 
-        if(this.ZoomMode==='fullpage'){
+        if (this.ZoomMode === 'fullpage') {
             this._put(`/OpenAction [${n} 0 R /Fit]`);
-        }else if(this.ZoomMode==='fullwidth'){
+        } else if (this.ZoomMode === 'fullwidth') {
             this._put(`/OpenAction [${n} 0 R /FitH null]`);
-        }else if(this.ZoomMode==='real'){
+        } else if (this.ZoomMode === 'real') {
             this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
-        }else if(typeof this.ZoomMode !=='string'){
-            this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f',this.ZoomMode/100)}]`);
+        } else if (typeof this.ZoomMode !== 'string') {
+            this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f', this.ZoomMode / 100)}]`);
         }
-           
-        if(this.LayoutMode==='single'){
+
+        if (this.LayoutMode === 'single') {
             this._put('/PageLayout /SinglePage');
-        }else if(this.LayoutMode==='continuous'){
+        } else if (this.LayoutMode === 'continuous') {
             this._put('/PageLayout /OneColumn');
-        }else if(this.LayoutMode==='two'){
+        } else if (this.LayoutMode === 'two') {
             this._put('/PageLayout /TwoColumnLeft');
         }
-            
+
     }
-    
-    _puttrailer(){
-        this._put(`/Size ${this.n+1}`);
+
+    _puttrailer() {
+        this._put(`/Size ${this.n + 1}`);
         this._put(`/Root ${this.n} 0 R`);
-        this._put(`/Info ${this.n-1} 0 R`);
+        this._put(`/Info ${this.n - 1} 0 R`);
     }
 
     _enddoc() {
@@ -1114,7 +1113,7 @@ module.exports = class FPDF {
     }
 
     Output(xdest = 'F', xfile = 'doc.pdf') {
-       
+
         if (this.state < 3) this.Close();
 
 
@@ -1134,5 +1133,26 @@ module.exports = class FPDF {
     _textstring(xs) {
         return "(" + this._escape(xs) + ")";
     }
+
+    GetPageHeight() {
+        // Get current page height
+        return this.h;
+    }
+
+    GetPageWidth() {
+        // Get current page width
+        return this.w;
+    }
+    
+    GetX(){
+        // Get x position
+        return this.x;
+    }
+
+    GetY(){
+        // Get y position
+        return this.y;
+    }
+
 }
 
