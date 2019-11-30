@@ -213,7 +213,6 @@ module.exports = class FPDF {
                 throw `Undefined font: ${family} ${style}`
             }
 
-
         }
 
         // Select it
@@ -328,7 +327,7 @@ module.exports = class FPDF {
 
         // Output a cell
         const k = this.k;
-        let x,y, ws
+        let x, y, ws
 
         if (this.y + h > this.PageBreakTrigger && this.InHeader && this.InFooter && this.AcceptPageBreak()) {
             // Automatic page break
@@ -402,7 +401,7 @@ module.exports = class FPDF {
             } else {
                 dx = this.cMargin;
             }
-            
+
             if (this.ColorFlag) { s += 'q ' + this.TextColor + ' ' }
 
             s += sprintf('BT %.2f %.2f Td (%s) Tj ET', (this.x + dx) * k, (this.h - (this.y + 0.5 * h + 0.3 * this.FontSize)) * k, this._escape(txt));
@@ -1143,16 +1142,209 @@ module.exports = class FPDF {
         // Get current page width
         return this.w;
     }
-    
-    GetX(){
+
+    GetX() {
         // Get x position
         return this.x;
     }
 
-    GetY(){
+    GetY() {
         // Get y position
         return this.y;
     }
 
+    SetXY(x, y) {
+        // Set x and y positions
+        this.SetX(x);
+        this.SetY(y, false);
+    }
+
+    SetX(x) {
+        // Set x position
+        if (x >= 0)
+            this.x = x;
+        else
+            this.x = this.w + x;
+    }
+    
+    SetY(y, resetX=true){
+        // Set y position and optionally reset x
+        if(y>=0)
+            this.y = y;
+        else
+            this.y = this.h+y;
+        
+        if(resetX)
+            this.x = this.lMargin;
+    }
+    
+    SetTopMargin(margin){
+        // Set top margin
+        this.tMargin = margin;
+    }
+
+    SetTitle(title){
+	    // Title of document
+	    this.metadata['Title']=title
+    }
+
+    SetTextColor(r, g=null, b=null){
+        // Set color for text
+        if((r==0 && g==0 && b==0) || g===null){
+            this.TextColor = sprintf('%.3f g',r/255);
+        }else{
+            this.TextColor = sprintf('%.3f %.3f %.3f rg',r/255,g/255,b/255);
+        }
+           
+        this.ColorFlag = (this.FillColor!==this.TextColor);
+    }
+
+    SetFontSize(size){
+        // Set font size in points
+        if(this.FontSizePt===size)
+            return;
+
+        this.FontSizePt = size;
+        this.FontSize = size/this.k;
+        
+        if(this.page>0)
+            this._out(sprintf('BT /F%d %.2f Tf ET',this.CurrentFont['i'],this.FontSizePt));
+    }
+
+    SetAuthor(author){
+        // Author of document
+        this.metadata['Author'] = author
+    }
+
+    SetCreator(creator){
+        // Creator of document
+        this.metadata['Creator'] = creator
+    }
+
+    SetKeywords(keywords){
+        // Keywords of document
+        this.metadata['Keywords'] = keywords
+    }
+
+    SetLeftMargin(margin){
+        // Set left margin
+        this.lMargin = margin;
+        if(this.page>0 && this.x<margin)
+            this.x = margin;
+    }
+
+    SetLineWidth(width){
+
+        // Set line width
+        this.LineWidth = width;
+        if(this.page>0)
+            this._out(sprintf('%.2f w',width*this.k));
+
+    }
+
+    SetLink(link, y=0, page=-1){
+        // Set destination of internal link
+        if(y==-1)
+            y = this.y;
+
+        if(page==-1)
+            page = this.page;
+
+        this.links[link] = [page,y]
+    }
+
+    SetMargins(left, top, right=null){
+        // Set left, top and right margins
+        this.lMargin = left;
+        this.tMargin = top;
+        
+        if(right===null)
+            right = left;
+
+        this.rMargin = right;
+    }
+
+    SetRightMargin(margin){
+        // Set right margin
+        this.rMargin = margin;
+    }
+
+    SetSubject(subject){
+        // Subject of document
+        this.metadata['Subject'] = subject
+    }
+
+    Ln(h=null){
+        // Line feed; default value is the last cell height
+        this.x = this.lMargin;
+        if(h===null)
+            this.y += this.lasth;
+        else
+            this.y += h;
+    }
+
+    
+    Text(x, y, txt){
+        
+        // Output a string
+        if(typeof this.CurrentFont ==='undefined')
+            throw 'No font has been set'    
+ 
+        let s = sprintf('BT %.2f %.2f Td (%s) Tj ET',x*this.k,(this.h-y)*this.k,this._escape(txt));
+        if(this.underline && txt!=='')
+            s += ' '+this._dounderline(x,y,txt);
+
+        if(this.ColorFlag)
+            s = 'q '+this.TextColor+' '+s+' Q';
+
+        this._out(s);
+
+    }
+
+    SetDrawColor(r, g=null, b=null){
+        // Set color for all stroking operations
+        if((r==0 && g==0 && b==0) || g===null)
+            this.DrawColor = sprintf('%.3f G',r/255);
+        else
+            this.DrawColor = sprintf('%.3f %.3f %.3f RG',r/255,g/255,b/255);
+        
+        if(this.page>0)
+            this._out(this.DrawColor);
+    }
+
+    SetFillColor(r, g=null, b=null){
+        // Set color for all filling operations
+        if((r==0 && g==0 && b==0) || g===null)
+            this.FillColor = sprintf('%.3f g',r/255);
+        else
+            this.FillColor = sprintf('%.3f %.3f %.3f rg',r/255,g/255,b/255);
+        
+        this.ColorFlag = (this.FillColor!=this.TextColor);
+        if(this.page>0)
+            this._out(this.FillColor);
+    }
+
+    PageNo(){
+        // Get current page number
+        return this.page;
+    }
+    
+    Line(x1, y1, x2, y2){
+        // Draw a line
+        this._out(sprintf('%.2f %.2f m %.2f %.2f l S',x1*this.k,(this.h-y1)*this.k,x2*this.k,(this.h-y2)*this.k));
+    }
+
+    Rect(x, y, w, h, style=''){
+        // Draw a rectangle
+        let op
+        if(style==='F')
+            op = 'f';
+        else if(style==='FD' || style==='DF')
+            op = 'B';
+        else
+            op = 'S';
+
+        this._out(sprintf('%.2f %.2f %.2f %.2f re %s',x*this.k,(this.h-y)*this.k,w*this.k,-h*this.k,op));
+    }
 }
 
