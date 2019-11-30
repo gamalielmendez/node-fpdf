@@ -1,24 +1,47 @@
-const FPDF = require('..')
+const FPDF = require('../index')
 
-const Doc = new FPDF('P',"mm","A4") 
-Doc.AddFont('courier')
-Doc.SetTitle("Ejemplo")
-Doc.AddPage()
-Doc.SetFont('Arial','',8);
-Doc.Cell(0,5,'== HOLA MUNDO ==',0,1,'C');
-Doc.SetFontSize(12)
-Doc.Cell(0,5,'== HOLA MUNDO ==',0,1,'C');
-Doc.SetTextColor(255,87,51)
-Doc.Cell(0,5,'== HOLA MUNDO ==',0,1,'C');
-Doc.Ln()
-Doc.Cell(0,5,'PRUEBA DE SALTO DE LINEA',0,1,'C');
-Doc.SetAuthor("Gamaliel Mendez")
-Doc.SetCreator("Gamaliel Mendez")
-Doc.SetSubject("Pruebas de FPDF")
-Doc.SetKeywords("FPDF PDF")
-Doc.Text(10,90,"Text")
-console.log(Doc.PageNo())
-Doc.Line(20,99,20,20)
-Doc.Rect(50,200,50,20)
-Doc.Close()
-Doc.Output('F',`${__dirname}/prueba.pdf`)
+let textypos = 5;
+const pdf = new FPDF($orientation='P',$unit='mm', [45,350]);
+pdf.AddPage();
+pdf.SetFont('Arial','',8);
+pdf.SetY(2);
+pdf.SetX(2);
+pdf.Cell(5,textypos,"NOMBRE DE LA EMPRESA");
+pdf.SetFont('Arial','',5); 
+textypos+=6;
+pdf.SetX(2);
+pdf.Cell(5,textypos,'-------------------------------------------------------------------')
+textypos+=6;
+pdf.SetX(2);
+pdf.Cell(5,textypos,'CANT.  ARTICULO       PRECIO               TOTAL')
+
+let total =0;
+let off = textypos+6;
+const producto={
+    "q":1,
+	"name":"Computadora",
+	"price":100  
+}
+
+aProductos=[producto,producto,producto,producto,producto]
+aProductos.map((val)=>{
+    pdf.SetX(2);
+    pdf.Cell(5,off,val["q"]);
+    pdf.SetX(6);
+    pdf.Cell(35,off,val["name"]);
+    pdf.SetX(20);
+    pdf.Cell(11,off,`$${val['price'].toFixed(1)}`);
+    pdf.SetX(32);
+    pdf.Cell(11,off,`$${(val['price']*val['q']).toFixed(1)}`);
+    total += val["q"]*val["price"];
+    off+=6;
+})
+
+textypos=off+6;
+pdf.SetX(2);
+pdf.Cell(5,textypos,"TOTAL: " );
+pdf.SetX(38);
+pdf.Cell(5,textypos,`$${total.toFixed(1)}`);
+pdf.SetX(2);
+pdf.Cell(5,textypos+6,'GRACIAS POR TU COMPRA ');
+pdf.Output('F',`${__dirname}/ticket.pdf`);

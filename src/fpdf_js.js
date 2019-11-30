@@ -654,6 +654,7 @@ module.exports = class FPDF {
 
     _escape(s) {
         // Escape special characters
+        s=`${s}`
         return s.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\\/g, '\\\\');
     }
 
