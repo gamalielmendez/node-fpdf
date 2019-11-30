@@ -151,7 +151,7 @@ module.exports = class FPDF {
         }
 
         const info = this._loadfont(file)
-        info['i'] = (this.fonts.length + 1)
+        info['i'] = ( Object.keys(this.fonts).length  + 1)
 
         if (typeof info['file'] !== 'undefined') {
 
@@ -328,6 +328,8 @@ module.exports = class FPDF {
 
         // Output a cell
         const k = this.k;
+        let x,ws
+
         if (this.y + h > this.PageBreakTrigger && this.InHeader && this.InFooter && this.AcceptPageBreak()) {
             // Automatic page break
             x = this.x;
@@ -347,7 +349,6 @@ module.exports = class FPDF {
 
         if (w === 0) { w = this.w - this.rMargin - this.x }
         let s = '';
-
 
         if (typeof border === 'number') {
 
@@ -369,14 +370,22 @@ module.exports = class FPDF {
             x = this.x;
             y = this.y;
 
-            if (border.indexOf('L') !== -1)
+            if (border.indexOf('L') !== -1){
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, x * k, (this.h - (y + h)) * k);
-            if (border.indexOf('T') !== -1)
+            }
+                
+            if (border.indexOf('T') !== -1){
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, (x + w) * k, (this.h - y) * k);
-            if (border.indexOf('R') !== -1)
+            }
+                
+            if (border.indexOf('R') !== -1){
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', (x + w) * k, (this.h - y) * k, (x + w) * k, (this.h - (y + h)) * k);
-            if (border.indexOf('B') !== -1)
+            }
+                
+            if (border.indexOf('B') !== -1){
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - (y + h)) * k, (x + w) * k, (this.h - (y + h)) * k);
+            }
+                
         }
 
         if (txt !== '') {
@@ -393,17 +402,17 @@ module.exports = class FPDF {
             } else {
                 dx = this.cMargin;
             }
-
+         
             if (this.ColorFlag) { s += 'q ' + this.TextColor + ' ' }
 
             s += sprintf('BT %.2f %.2f Td (%s) Tj ET', (this.x + dx) * k, (this.h - (this.y + 0.5 * h + 0.3 * this.FontSize)) * k, this._escape(txt));
 
-            if (this.underline) { s += ' ' + this - _dounderline(this.x + dx, this.y + 0.5 * h + 0.3 * this.FontSize, txt) }
+            if (this.underline) { s += ' ' + this._dounderline(this.x + dx, this.y + 0.5 * h + 0.3 * this.FontSize, txt) }
             if (this.ColorFlag) { s += ' Q' }
-            if (link) { this.Link(this.x + dx, this.y + 0.5 * h - 0.5 * this.FontSize, this.GetStringWidth(txt), this.FontSize, link) }
+            if (link !=='') { this.Link(this.x + dx, this.y + 0.5 * h - 0.5 * this.FontSize, this.GetStringWidth(txt), this.FontSize, link) }
 
         }
-
+        
         if (s) { this._out(s) }
         this.lasth = h;
 
@@ -418,7 +427,7 @@ module.exports = class FPDF {
         } else {
             this.x += w;
         }
-
+       
     }
 
     Close() {
@@ -606,7 +615,7 @@ module.exports = class FPDF {
     }
 
     _out(s) {
-
+        
         // Add a line to the document
         if (this.state === 2) {
             this.pages[this.page] += s + "\n";
@@ -646,15 +655,8 @@ module.exports = class FPDF {
 
     _escape(s) {
         // Escape special characters
-        if (s.indexOf('(') !== -1 || s.indexOf(')') !== -1 || s.indexOf('\\') !== -1 || s.indexOf('\r') !== -1) {
-            s = s.replace('\\', '\\\\')
-            s = s.replace('(', '\\(')
-            s = s.replace(')', '\\)')
-            s = s.replace('\r', '\\r')
-            return s
-        } else {
-            return s
-        }
+        return s.replace(/\(/g, '\\(').replace(/\)/g, '\\)').replace(/\\/g, '\\\\');
+
     }
 
     _dounderline(x, y, txt) {
@@ -698,7 +700,7 @@ module.exports = class FPDF {
             entries = '';
         }
 
-        entries += `/Length ${data}`;
+        entries += `/Length ${data.length }`;
         this._newobj();
         this._put('<<' + entries + '>>');
         this._putstream(data);
@@ -842,13 +844,13 @@ module.exports = class FPDF {
         $s += "endcodespacerange\n";
 
         if(nbr>0){
-            $s += "$nbr beginbfrange\n";
+            $s += `${nbr} beginbfrange\n`;
             $s += ranges;
             $s += "endbfrange\n";
         }
         
         if(nbc>0){
-            $s += "$nbc beginbfchar\n";
+            $s += `${nbc} beginbfchar\n`;
             $s += chars;
             $s += "endbfchar\n";
         }
@@ -1004,7 +1006,7 @@ module.exports = class FPDF {
         
         for (const key in this.fonts) {
             const font = this.fonts[key]
-            this._put(`/F${font['i']} ${font['n']} 0 R'`);
+            this._put(`/F${font['i']} ${font['n']} 0 R`);
         }
 
         this._put('>>');
@@ -1028,10 +1030,11 @@ module.exports = class FPDF {
 
     _putinfo(){
         
+        this.metadata['Producer'] = 'FPDF '+this.PDFVersion;
         var date = new Date();
         var YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
-        this.metadata['CreationDate'] = this._textstring("D:" + YYYYMMDDHHMMSS)
-        this.metadata['Producer'] = 'FPDF '+this.PDFVersion;
+        this.metadata['CreationDate'] = "D:" + YYYYMMDDHHMMSS
+        
         
         for (const key in this.metadata) {
             const value = this.metadata[key]
@@ -1048,22 +1051,28 @@ module.exports = class FPDF {
 
         if(this.ZoomMode==='fullpage'){
             this._put(`/OpenAction [${n} 0 R /Fit]`);
-        }else if(this.ZoomMode=='fullwidth'){
+        }else if(this.ZoomMode==='fullwidth'){
             this._put(`/OpenAction [${n} 0 R /FitH null]`);
-        }else if(this.ZoomMode=='real'){
+        }else if(this.ZoomMode==='real'){
             this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
         }else if(typeof this.ZoomMode !=='string'){
             this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f',this.ZoomMode/100)}]`);
         }
            
-        if(this.LayoutMode=='single'){
+        if(this.LayoutMode==='single'){
             this._put('/PageLayout /SinglePage');
-        }else if(this.LayoutMode=='continuous'){
+        }else if(this.LayoutMode==='continuous'){
             this._put('/PageLayout /OneColumn');
-        }else if(this.LayoutMode=='two'){
+        }else if(this.LayoutMode==='two'){
             this._put('/PageLayout /TwoColumnLeft');
         }
             
+    }
+    
+    _puttrailer(){
+        this._put(`/Size ${this.n+1}`);
+        this._put(`/Root ${this.n} 0 R`);
+        this._put(`/Info ${this.n-1} 0 R`);
     }
 
     _enddoc() {
@@ -1096,12 +1105,30 @@ module.exports = class FPDF {
         // Trailer
         this._put('trailer');
         this._put('<<');
-        //this._puttrailer();
+        this._puttrailer();
         this._put('>>');
         this._put('startxref');
         this._put(`${offset}`);
         this._put('%%EOF');
         this.state = 3;
+    }
+
+    Output(xdest = 'F', xfile = 'doc.pdf') {
+       
+        if (this.state < 3) this.Close();
+
+
+        switch (xdest.toLowerCase()) {
+            case 'f':
+                fs.writeFileSync(xfile, this.buffer);
+                break;
+            case 's':
+                //console.log(this.buffer)
+                return this.buffer;
+                break;
+            default:
+                throw 'ERROR -- Unrecognized output type: "' + xdest + '", options are I (in browser), D (download through browser), F (write to file), or S (return as a string).'
+        }
     }
 
     _textstring(xs) {
