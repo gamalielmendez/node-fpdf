@@ -1,6 +1,6 @@
 {
   "name": "node-fpdf",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "port de la libreria de FPDF de PHP",
   "main": "index.js",
   "directories": {
@@ -15,7 +15,9 @@
   },
   "keywords": [
     "PDF",
-    "FPDF"
+    "FPDF",
+    "node",
+    "electron"
   ],
   "author": "Gamaliel Mendez",
   "license": "MIT",
