@@ -1,4 +1,4 @@
-const FPDF = require('../fpdf')
+const FPDF = require('..')
 
 const Doc = new FPDF('P',"mm","A4") 
 Doc.AddFont('courier')
