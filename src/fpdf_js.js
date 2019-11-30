@@ -2,7 +2,7 @@
 const fs = require('fs')
 const sprintf = require('sprintf-js').sprintf
 
-function substr_count(target,textSearch){
+function substr_count(target, textSearch) {
     const substr_count = target.split(textSearch).length - 1;
     return substr_count
 }
@@ -18,7 +18,7 @@ module.exports = class FPDF {
         this.buffer = '';
         this.pages = new Array();
         this.PageInfo = new Array();
-        this.fonts = new Array();
+        this.fonts = {};
         this.FontFiles = new Array();
         this.encodings = new Array();
         this.cmaps = new Array();
@@ -39,6 +39,11 @@ module.exports = class FPDF {
         this.ws = 0;
         this.enc = ''
         this.subsetted = ''
+        this.PageLinks = {}
+        this.AliasNbPages = ''
+        this.offsets = {}
+        this.metadata={}
+        this.ZoomMode=''
 
         if (fontpath !== '') {
 
@@ -347,7 +352,7 @@ module.exports = class FPDF {
         if (typeof border === 'number') {
 
             if (fill || border === 1) {
-                
+
                 let op
                 if (fill) {
                     op = (border == 1) ? 'B' : 'f';
@@ -413,6 +418,24 @@ module.exports = class FPDF {
         } else {
             this.x += w;
         }
+
+    }
+
+    Close() {
+
+        // Terminate document
+        if (this.state == 3) { return }
+        if (this.page == 0) { this.AddPage() }
+
+        // Page footer
+        this.InFooter = true;
+        this.Footer();
+        this.InFooter = false;
+
+        // Close page
+        this._endpage();
+        // Close document
+        this._enddoc();
 
     }
 
@@ -535,12 +558,10 @@ module.exports = class FPDF {
             this.CurOrientation = orientation;
             this.CurPageSize = size;
         }
-
+        if (typeof this.PageInfo[this.page] === 'undefined') {
+            this.PageInfo[this.page] = {}
+        }
         if (orientation !== this.DefOrientation || size[0] !== this.DefPageSize[0] || size[1] !== this.DefPageSize[1]) {
-
-            if (typeof this.PageInfo[this.page] === 'undefined') {
-                this.PageInfo[this.page] = new Array()
-            }
 
             this.PageInfo[this.page]['size'] = [this.wPt, this.hPt]
         }
@@ -549,10 +570,6 @@ module.exports = class FPDF {
 
             if (rotation % 90 != 0) {
                 throw 'Incorrect rotation value'
-            }
-
-            if (typeof this.PageInfo[this.page] === 'undefined') {
-                this.PageInfo[this.page] = new Array()
             }
 
             this.CurRotation = rotation;
@@ -639,18 +656,456 @@ module.exports = class FPDF {
             return s
         }
     }
-    
-    _dounderline(x, y, txt){
+
+    _dounderline(x, y, txt) {
         // Underline text
         const up = this.CurrentFont['up'];
         const ut = this.CurrentFont['ut'];
-        const w = this.GetStringWidth(txt)+this.ws*substr_count(txt,' ');
-        return sprintf('%.2f %.2f %.2f %.2f re f',x*this.k,(this.h-(y-up/1000*this.FontSize))*this.k,w*this.k,-ut/1000*this.FontSizePt);
+        const w = this.GetStringWidth(txt) + this.ws * substr_count(txt, ' ');
+        return sprintf('%.2f %.2f %.2f %.2f re f', x * this.k, (this.h - (y - up / 1000 * this.FontSize)) * this.k, w * this.k, -ut / 1000 * this.FontSizePt);
     }
 
-    Link(x, y, w, h, link){
+    Link(x, y, w, h, link) {
         // Put a link on the page
-        this.PageLinks[this.page]= [x*this.k, this.hPt-y*this.k, w*this.k, h*this.k, link];
+        this.PageLinks[this.page] = [x * this.k, this.hPt - y * this.k, w * this.k, h * this.k, link];
+    }
+
+    _getoffset() {
+        return this.buffer.length
+    }
+
+    _newobj(n) {
+        // Begin a new object
+        if (typeof n === 'undefined') { n = ++this.n; }
+        this.offsets[n] = this._getoffset();
+        this._put(`${n} 0 obj`);
+
+    }
+
+    _putstream(data) {
+        this._put('stream');
+        this._put(data);
+        this._put('endstream');
+    }
+
+    _putstreamobject(data) {
+
+        let entries
+        if (this.compress) {
+            entries = '/Filter /FlateDecode ';
+            data = gzcompress(data);
+        } else {
+            entries = '';
+        }
+
+        entries += `/Length ${data}`;
+        this._newobj();
+        this._put('<<' + entries + '>>');
+        this._putstream(data);
+        this._put('endobj');
+    }
+
+    _putpage(n) {
+
+        this._newobj()
+        this._put('<</Type /Page')
+        this._put('/Parent 1 0 R')
+
+        if (typeof this.PageInfo[n]['size'] !== 'undefined') {
+            this._put(sprintf('/MediaBox [0 0 %.2f %.2f]', this.PageInfo[n]['size'][0], this.PageInfo[n]['size'][1]))
+        }
+
+        if (typeof this.PageInfo[n]['rotation'] !== 'undefined') {
+            this._put(`/Rotate ${this.PageInfo[n]['rotation']}`);
+        }
+
+        this._put('/Resources 2 0 R');
+        if (typeof this.PageLinks[n] !== 'undefined') {
+
+            // Links
+            let annots = '/Annots [';
+            this.PageLinks[n].forEach(pl => {
+
+                const rect = sprintf('%.2f %.2f %.2f %.2f', pl[0], pl[1], pl[0] + pl[2], pl[1] - pl[3]);
+                annots += '<</Type /Annot /Subtype /Link /Rect [' + $rect + '] /Border [0 0 0] ';
+
+                if (typeof pl[4] === 'string') {
+                    annots += '/A <</S /URI /URI ' + $this._textstring($pl[4]) + '>>>>';
+                } else {
+
+                    const l = this.links[pl[4]]
+                    let h
+                    if (typeof this.PageInfo[l][0]['size'] !== 'undefined') {
+                        h = this.PageInfo[l[0]]['size'][1];
+                    } else {
+                        h = (this.DefOrientation == 'P') ? this.DefPageSize[1] * this.k : this.DefPageSize[0] * this.k;
+                    }
+
+                    annots += sprintf('/Dest [%d 0 R /XYZ 0 %.2f null]>>', this.PageInfo[l[0]]['n'], h - l[1] * this.k);
+                }
+
+            });
+
+            this._put(annots + ']');
+        }
+
+        if (this.WithAlpha) {
+            this._put('/Group <</Type /Group /S /Transparency /CS /DeviceRGB>>');
+        }
+
+        this._put(`/Contents ${(this.n + 1)} 0 R>>`);
+        this._put('endobj')
+
+        // Page content
+        if (this.AliasNbPages !== '') {
+            this.pages[n] = this.pages[n].replace(this.AliasNbPages, this.page)
+        }
+
+        this._putstreamobject(this.pages[n]);
+
+    }
+
+    _putheader() {
+        this._put('%PDF-' + this.PDFVersion);
+    }
+
+    _putpages() {
+
+        const nb = this.page;
+        for (let n = 1; n <= nb; n++) {
+            this.PageInfo[n]['n'] = this.n + 1 + 2 * (n - 1);
+        }
+
+        for (let n = 1; n <= nb; n++) {
+            this._putpage(n);
+        }
+
+        // Pages root
+        this._newobj(1);
+        this._put('<</Type /Pages');
+
+        let kids = '/Kids [';
+        for (let n = 1; n <= nb; n++) {
+            kids += `${this.PageInfo[n]['n']} 0 R `;
+        }
+
+        this._put(kids + ']');
+        this._put(`/Count ${nb}`);
+
+        let w
+        let h
+        if (this.DefOrientation == 'P') {
+            w = this.DefPageSize[0];
+            h = this.DefPageSize[1];
+        } else {
+            w = this.DefPageSize[1];
+            h = this.DefPageSize[0];
+        }
+
+        this._put(sprintf('/MediaBox [0 0 %.2f %.2f]', w * this.k, h * this.k));
+        this._put('>>');
+        this._put('endobj');
+
+    }
+
+    _tounicodecmap(uv) {
+
+        let ranges='' 
+        let nbr=0
+        let chars=''
+        let nbc=0
+
+        for (const key in uv) {
+            
+            if(typeof uv[key]==='number'){
+                chars+=sprintf("<%02X> <%04X>\n",key,uv[key])   
+                nbc++
+            }else{
+                ranges += sprintf("<%02X> <%02X> <%04X>\n",key,key+uv[key][1]-1,uv[key][0]);
+                nbr++;
+            }
+
+        }
+
+        let $s = "/CIDInit /ProcSet findresource begin\n";
+        $s += "12 dict begin\n";
+        $s += "begincmap\n";
+        $s += "/CIDSystemInfo\n";
+        $s += "<</Registry (Adobe)\n";
+        $s += "/Ordering (UCS)\n";
+        $s += "/Supplement 0\n";
+        $s += ">> def\n";
+        $s += "/CMapName /Adobe-Identity-UCS def\n";
+        $s += "/CMapType 2 def\n";
+        $s += "1 begincodespacerange\n";
+        $s += "<00> <FF>\n";
+        $s += "endcodespacerange\n";
+
+        if(nbr>0){
+            $s += "$nbr beginbfrange\n";
+            $s += ranges;
+            $s += "endbfrange\n";
+        }
+        
+        if(nbc>0){
+            $s += "$nbc beginbfchar\n";
+            $s += chars;
+            $s += "endbfchar\n";
+        }
+
+        $s += "endcmap\n";
+        $s += "CMapName currentdict /CMap defineresource pop\n";
+        $s += "end\n";
+        $s += "end";
+        
+        return $s;
+
+    }
+
+    _putfonts() {
+
+        //soporte para fuentes enbebidas pendiente
+        this.FontFiles.forEach(file => { });
+
+        for (const key in this.fonts) {
+
+            const font = this.fonts[key]
+
+            // Encoding
+            if (typeof font['diff'] !== 'undefined') {
+                if (typeof this.encodings[font['enc']] === 'undefined') {
+                    this._newobj();
+                    this._put(`<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${font['diff']}]>>`);
+                    this._put('endobj');
+                    this.encodings[font['enc']] = this.n;
+                }
+            }
+
+            // ToUnicode CMap
+            let cmapkey
+            if (typeof font['uv'] !== 'undefined') {   
+                if (typeof font['enc'] !== 'undefined') {
+                    cmapkey = font['enc']
+                } else {
+                    cmapkey = font['name']
+                }
+
+                if (typeof this.cmaps[cmapkey] === 'undefined') {
+                    const cmap = this._tounicodecmap(font['uv']);
+                    this._putstreamobject(cmap);
+                    this.cmaps[cmapkey] = this.n;
+                }
+            }
+            
+            // Font object
+            this.fonts[key]['n'] = this.n+1;
+            const type = font['type'];
+            let name = font['name'];
+            if(font['subsetted']){ name = 'AAAAAA+'+name }
+
+            if(type=='Core'){
+                
+                // Core font
+                this._newobj();
+                this._put('<</Type /Font');
+                this._put('/BaseFont /'+name);
+                this._put('/Subtype /Type1');
+                
+                if(name!=='Symbol' && name!=='ZapfDingbats'){ this._put('/Encoding /WinAnsiEncoding') }
+                if(typeof font['uv']!=='undefined'){ this._put(`/ToUnicode ${this.cmaps[cmapkey]} 0 R`) }
+
+                this._put('>>');
+                this._put('endobj');
+
+            }else if(type==='Type1' || type==='TrueType'){
+                
+                // Additional Type1 or TrueType/OpenType font
+                this._newobj();
+                this._put('<</Type /Font');
+                this._put('/BaseFont /'+name);
+                this._put('/Subtype /'+type);
+                this._put('/FirstChar 32 /LastChar 255');
+                this._put(`/Widths ${this.n+1} 0 R`);
+                this._put(`/FontDescriptor ${this.n+2} 0 R`);
+                
+                if(typeof font['diff']!=='undefined'){
+                    this._put(`/Encoding ${this.encodings[font['enc']]} 0 R`);
+                }else{
+                    this._put('/Encoding /WinAnsiEncoding');
+                }
+                 //isset($font['uv'])   
+                if(typeof font['uv'] !=='undefined'){
+                    this._put(`/ToUnicode ${this.cmaps[$mapkey]} 0 R`);
+                }
+                    
+                this._put('>>');
+                this._put('endobj');
+                // Widths
+                this._newobj();
+                const cw = font['cw'];
+                let s = '[';
+                for(let $i=32;$i<=255;$i++){
+                    s += `${cw[String.fromCharCode($i)]} `;
+                }
+                    
+                this._put(s+']');
+                this._put('endobj');
+                
+                // Descriptor
+                this._newobj();
+                s = '<</Type /FontDescriptor /FontName /'+$name;
+                
+                for (const key2 in font['desc']) {
+                    s += ` /${key2} ${font['desc'][key2]}`;
+                } 
+
+                if(!empty($font['file'])){
+                    s += ` /FontFile${(type=='Type1')? '' : '2'} ${this.FontFiles[font['file']]['n']} 0 R`
+                }
+                    
+                this._put(s+'>>');
+                this._put('endobj');
+
+            }else{
+                // Allow for additional types
+                let mtd = '_put'+type.toLowerCase()  
+                if (typeof this[mtd] === 'undefined') { 
+                    throw 'Unsupported font type: '
+                }
+                this[mtd](font);
+            }
+        }
+
+    }
+
+    _putimages(){
+        /*   
+        foreach(array_keys($this->images) as $file){
+            $this->_putimage($this->images[$file]);
+            unset($this->images[$file]['data']);
+            unset($this->images[$file]['smask']);
+        }
+        */
+    }
+    
+    _putxobjectdict(){
+        
+        for (const key in this.images) {
+            const image = this.images[key]
+            this._put(`/I${image['i']} ${image['n']} 0 R`);
+        }
+
+    }
+
+    _putresourcedict(){
+        
+        this._put('/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]');
+        this._put('/Font <<');
+        
+        for (const key in this.fonts) {
+            const font = this.fonts[key]
+            this._put(`/F${font['i']} ${font['n']} 0 R'`);
+        }
+
+        this._put('>>');
+        this._put('/XObject <<');
+        this._putxobjectdict();
+        this._put('>>');
+    }
+    
+    _putresources() {
+
+        this._putfonts();
+        //this._putimages();
+        // Resource dictionary
+        this._newobj(2);
+        this._put('<<');
+        this._putresourcedict();
+        this._put('>>');
+        this._put('endobj');
+
+    }
+
+    _putinfo(){
+        
+        var date = new Date();
+        var YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
+        this.metadata['CreationDate'] = this._textstring("D:" + YYYYMMDDHHMMSS)
+        this.metadata['Producer'] = 'FPDF '+this.PDFVersion;
+        
+        for (const key in this.metadata) {
+            const value = this.metadata[key]
+            this._put(`/${key} ${this._textstring(value)}`);
+        }
+   
+    }
+
+    _putcatalog(){
+
+        const n = this.PageInfo[1]['n'];
+        this._put('/Type /Catalog');
+        this._put('/Pages 1 0 R');
+
+        if(this.ZoomMode==='fullpage'){
+            this._put(`/OpenAction [${n} 0 R /Fit]`);
+        }else if(this.ZoomMode=='fullwidth'){
+            this._put(`/OpenAction [${n} 0 R /FitH null]`);
+        }else if(this.ZoomMode=='real'){
+            this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
+        }else if(typeof this.ZoomMode !=='string'){
+            this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f',this.ZoomMode/100)}]`);
+        }
+           
+        if(this.LayoutMode=='single'){
+            this._put('/PageLayout /SinglePage');
+        }else if(this.LayoutMode=='continuous'){
+            this._put('/PageLayout /OneColumn');
+        }else if(this.LayoutMode=='two'){
+            this._put('/PageLayout /TwoColumnLeft');
+        }
+            
+    }
+
+    _enddoc() {
+
+        this._putheader();
+        this._putpages();
+        this._putresources();
+
+        // Info
+        this._newobj();
+        this._put('<<');
+        this._putinfo();
+        this._put('>>');
+        this._put('endobj');
+        // Catalog
+        this._newobj();
+        this._put('<<');
+        this._putcatalog();
+        this._put('>>');
+        this._put('endobj');
+        // Cross-ref
+        const offset = this._getoffset();
+        this._put('xref');
+        this._put(`0 ${(this.n + 1)}`);
+        this._put('0000000000 65535 f ');
+        for (let i = 1; i <= this.n; i++) {
+            this._put(sprintf('%010d 00000 n ', this.offsets[i]));
+        }
+
+        // Trailer
+        this._put('trailer');
+        this._put('<<');
+        //this._puttrailer();
+        this._put('>>');
+        this._put('startxref');
+        this._put(`${offset}`);
+        this._put('%%EOF');
+        this.state = 3;
+    }
+
+    _textstring(xs) {
+        return "(" + this._escape(xs) + ")";
     }
 }
 
