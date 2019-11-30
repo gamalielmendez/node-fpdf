@@ -1,9 +1,9 @@
 const FPDF = require('../fpdf')
 
-const Doc = new FPDF('P',"mm",[45,350]) 
+const Doc = new FPDF('P',"mm","A4") 
 Doc.AddFont('courier')
 Doc.AddPage()
-Doc.SetFont('Arial','',8);
-Doc.Cell(0,5,'== Nueva Cuenta ==',0,1,'C');
+Doc.SetFont('Arial','',20);
+Doc.Cell(0,5,'== HOLA MUNDO ==',0,1,'C');
 Doc.Close()
 Doc.Output('F',`${__dirname}/prueba.pdf`)
