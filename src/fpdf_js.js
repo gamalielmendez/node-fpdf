@@ -2,6 +2,11 @@
 const fs = require('fs')
 const sprintf = require('sprintf-js').sprintf
 
+function substr_count(target,textSearch){
+    const substr_count = target.split(textSearch).length - 1;
+    return substr_count
+}
+
 module.exports = class FPDF {
 
     constructor(orientation = 'P', unit = 'mm', size = 'A4', fontpath = "") {
@@ -314,84 +319,101 @@ module.exports = class FPDF {
         this.AliasNbPages = alias;
     }
 
-    Cell($w, $h = 0, $txt = '', $border = 0, $ln = 0, $align = '', $fill = false, $link = '') {
-        /*
+    Cell(w, h = 0, txt = '', border = 0, ln = 0, align = '', fill = false, link = '') {
+
         // Output a cell
-        $k = $this->k;
-        if($this->y+$h>$this->PageBreakTrigger && !$this->InHeader && !$this->InFooter && $this->AcceptPageBreak())
-        {
+        const k = this.k;
+        if (this.y + h > this.PageBreakTrigger && this.InHeader && this.InFooter && this.AcceptPageBreak()) {
             // Automatic page break
-            $x = $this->x;
-            $ws = $this->ws;
-            if($ws>0)
-            {
-                $this->ws = 0;
-                $this->_out('0 Tw');
+            x = this.x;
+            ws = this.ws;
+            if (ws > 0) {
+                this.ws = 0;
+                this._out('0 Tw');
             }
-            $this->AddPage($this->CurOrientation,$this->CurPageSize,$this->CurRotation);
-            $this->x = $x;
-            if($ws>0)
-            {
-                $this->ws = $ws;
-                $this->_out(sprintf('%.3F Tw',$ws*$k));
+
+            this.AddPage(this.CurOrientation, this.CurPageSize, this.CurRotation);
+            this.x = x;
+            if (ws > 0) {
+                this.ws = ws;
+                this._out(sprintf('%.3f Tw', ws * k));
             }
         }
-        if($w==0)
-            $w = $this->w-$this->rMargin-$this->x;
-        $s = '';
-        if($fill || $border==1)
-        {
-            if($fill)
-                $op = ($border==1) ? 'B' : 'f';
-            else
-                $op = 'S';
-            $s = sprintf('%.2F %.2F %.2F %.2F re %s ',$this->x*$k,($this->h-$this->y)*$k,$w*$k,-$h*$k,$op);
+
+        if (w === 0) { w = this.w - this.rMargin - this.x }
+        let s = '';
+
+
+        if (typeof border === 'number') {
+
+            if (fill || border === 1) {
+                
+                let op
+                if (fill) {
+                    op = (border == 1) ? 'B' : 'f';
+                } else {
+                    op = 'S';
+                }
+
+                s = sprintf('%.2f %.2f %.2f %.2f re %s ', this.x * k, (this.h - this.y) * k, w * k, -h * k, op);
+
+            }
+
+        } else if (typeof border === 'string') {
+
+            x = this.x;
+            y = this.y;
+
+            if (border.indexOf('L') !== -1)
+                s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, x * k, (this.h - (y + h)) * k);
+            if (border.indexOf('T') !== -1)
+                s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, (x + w) * k, (this.h - y) * k);
+            if (border.indexOf('R') !== -1)
+                s += sprintf('%.2f %.2f m %.2f %.2f l S ', (x + w) * k, (this.h - y) * k, (x + w) * k, (this.h - (y + h)) * k);
+            if (border.indexOf('B') !== -1)
+                s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - (y + h)) * k, (x + w) * k, (this.h - (y + h)) * k);
         }
-        if(is_string($border))
-        {
-            $x = $this->x;
-            $y = $this->y;
-            if(strpos($border,'L')!==false)
-                $s .= sprintf('%.2F %.2F m %.2F %.2F l S ',$x*$k,($this->h-$y)*$k,$x*$k,($this->h-($y+$h))*$k);
-            if(strpos($border,'T')!==false)
-                $s .= sprintf('%.2F %.2F m %.2F %.2F l S ',$x*$k,($this->h-$y)*$k,($x+$w)*$k,($this->h-$y)*$k);
-            if(strpos($border,'R')!==false)
-                $s .= sprintf('%.2F %.2F m %.2F %.2F l S ',($x+$w)*$k,($this->h-$y)*$k,($x+$w)*$k,($this->h-($y+$h))*$k);
-            if(strpos($border,'B')!==false)
-                $s .= sprintf('%.2F %.2F m %.2F %.2F l S ',$x*$k,($this->h-($y+$h))*$k,($x+$w)*$k,($this->h-($y+$h))*$k);
+
+        if (txt !== '') {
+
+            if (typeof this.CurrentFont === 'undefined') {
+                throw 'No font has been set'
+            }
+
+            let dx
+            if (align === 'R') {
+                dx = w - this.cMargin - this.GetStringWidth(txt);
+            } else if (align === 'C') {
+                dx = (w - this.GetStringWidth(txt)) / 2;
+            } else {
+                dx = this.cMargin;
+            }
+
+            if (this.ColorFlag) { s += 'q ' + this.TextColor + ' ' }
+
+            s += sprintf('BT %.2f %.2f Td (%s) Tj ET', (this.x + dx) * k, (this.h - (this.y + 0.5 * h + 0.3 * this.FontSize)) * k, this._escape(txt));
+
+            if (this.underline) { s += ' ' + this - _dounderline(this.x + dx, this.y + 0.5 * h + 0.3 * this.FontSize, txt) }
+            if (this.ColorFlag) { s += ' Q' }
+            if (link) { this.Link(this.x + dx, this.y + 0.5 * h - 0.5 * this.FontSize, this.GetStringWidth(txt), this.FontSize, link) }
+
         }
-        if($txt!=='')
-        {
-            if(!isset($this->CurrentFont))
-                $this->Error('No font has been set');
-            if($align=='R')
-                $dx = $w-$this->cMargin-$this->GetStringWidth($txt);
-            elseif($align=='C')
-                $dx = ($w-$this->GetStringWidth($txt))/2;
-            else
-                $dx = $this->cMargin;
-            if($this->ColorFlag)
-                $s .= 'q '.$this->TextColor.' ';
-            $s .= sprintf('BT %.2F %.2F Td (%s) Tj ET',($this->x+$dx)*$k,($this->h-($this->y+.5*$h+.3*$this->FontSize))*$k,$this->_escape($txt));
-            if($this->underline)
-                $s .= ' '.$this->_dounderline($this->x+$dx,$this->y+.5*$h+.3*$this->FontSize,$txt);
-            if($this->ColorFlag)
-                $s .= ' Q';
-            if($link)
-                $this->Link($this->x+$dx,$this->y+.5*$h-.5*$this->FontSize,$this->GetStringWidth($txt),$this->FontSize,$link);
-        }
-        if($s)
-            $this->_out($s);
-        $this->lasth = $h;
-        if($ln>0)
-        {
+
+        if (s) { this._out(s) }
+        this.lasth = h;
+
+        if (ln > 0) {
+
             // Go to next line
-            $this->y += $h;
-            if($ln==1)
-                $this->x = $this->lMargin;
+            this.y += h;
+            if (ln == 1) {
+                this.x = this.lMargin;
+            }
+
+        } else {
+            this.x += w;
         }
-        else
-            $this->x += $w;*/
+
     }
 
     Header() { /* To be implemented in your own inherited class*/ }
@@ -583,6 +605,52 @@ module.exports = class FPDF {
 
     _put(s) {
         this.buffer += s + "\n"
+    }
+
+    AcceptPageBreak() {
+        // Accept automatic page break or not
+        return this.AutoPageBreak;
+    }
+
+    GetStringWidth(s) {
+
+        // Get width of a string in the current font
+        s = `${s}`;
+        const cw = this.CurrentFont['cw']
+        let w = 0
+        const l = s.length
+
+        for (let index = 0; index < l; index++) {
+            w += cw[s.charAt(index)]
+        }
+
+        return w * this.FontSize / 1000
+    }
+
+    _escape(s) {
+        // Escape special characters
+        if (s.indexOf('(') !== -1 || s.indexOf(')') !== -1 || s.indexOf('\\') !== -1 || s.indexOf('\r') !== -1) {
+            s = s.replace('\\', '\\\\')
+            s = s.replace('(', '\\(')
+            s = s.replace(')', '\\)')
+            s = s.replace('\r', '\\r')
+            return s
+        } else {
+            return s
+        }
+    }
+    
+    _dounderline(x, y, txt){
+        // Underline text
+        const up = this.CurrentFont['up'];
+        const ut = this.CurrentFont['ut'];
+        const w = this.GetStringWidth(txt)+this.ws*substr_count(txt,' ');
+        return sprintf('%.2f %.2f %.2f %.2f re f',x*this.k,(this.h-(y-up/1000*this.FontSize))*this.k,w*this.k,-ut/1000*this.FontSizePt);
+    }
+
+    Link(x, y, w, h, link){
+        // Put a link on the page
+        this.PageLinks[this.page]= [x*this.k, this.hPt-y*this.k, w*this.k, h*this.k, link];
     }
 }
 
