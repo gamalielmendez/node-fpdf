@@ -1,6 +1,8 @@
 # node-fpdf
 ## port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original
 
+Puedes encontar  proyecto y documentacion original [aqui](http://www.fpdf.org/)
+
 *para instalar y probar*  
 > npm i node-fpdf
 
