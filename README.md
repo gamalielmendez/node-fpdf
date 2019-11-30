@@ -1,5 +1,13 @@
-# fpdf_js
-port de la libreria FPDF de PHP a Javascript
+# node-fpdf
+## port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original
+
+*para instalar y probar*  
+> npm i node-fpdf
+
+*o*
+
+> yarn add node-fpdf
+
 
 #### **Por Hacer**
 - [x] *AcceptPageBreak - acepta o no un salto de página automático*
