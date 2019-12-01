@@ -1,17 +1,29 @@
 # node-fpdf
-## port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original
+### port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original Puedes encontar  proyecto y documentacion original [aqui](http://www.fpdf.org/)
 
-Puedes encontar  proyecto y documentacion original [aqui](http://www.fpdf.org/)
+# Para Instalar
+```javascript 
+npm i node-fpdf 
+//o
+yarn add node-fpdf
+````
+# Como se Usa
+```javascript 
+const FPDF = require('node-fpdf')
+const pdf = new FPDF('P','mm','A4');
 
-*para instalar y probar*  
-> npm i node-fpdf
+pdf.AddPage();
+pdf.SetFont('Arial','B',12);
+pdf.Cell(5,5,"HOLA MUNDO!!");
+pdf.Output('F',`test.pdf`);
+```` 
+# **Fuentes Disponibles**
+- [x] courier
+- [ ] helvetica
+- [ ] symbol
+- [ ] times
 
-*o*
-
-> yarn add node-fpdf
-
-
-#### **Por Hacer**
+# **Por Hacer en Clase**
 - [x] *AcceptPageBreak - acepta o no un salto de página automático*
 - [x] *AddFont - añade una nueva fuente*
 - [x] *AddLink - crea una referencia interna*

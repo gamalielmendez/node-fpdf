@@ -3,11 +3,11 @@ const FPDF = require('../index')
 let textypos = 5;
 const pdf = new FPDF($orientation='P',$unit='mm', [45,350]);
 pdf.AddPage();
-pdf.SetFont('Arial','',8);
+pdf.SetFont('Arial','I',8);
 pdf.SetY(2);
 pdf.SetX(2);
 pdf.Cell(5,textypos,"NOMBRE DE LA EMPRESA");
-pdf.SetFont('Arial','',5); 
+pdf.SetFont('Arial','BI',5); 
 textypos+=6;
 pdf.SetX(2);
 pdf.Cell(5,textypos,'-------------------------------------------------------------------')
