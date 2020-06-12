@@ -6,7 +6,7 @@ let textypos = 5;
 const pdf = new FPDF('P','mm', [45, 350]);
 
 pdf.AddPage()
-pdf.SetFont('Arial', 'B', 8) //Letra Arial, negrita (Bold), tam. 20
+pdf.SetFont('Times', 'B', 8) //Letra Arial, negrita (Bold), tam. 20
 pdf.SetY(2)
 pdf.SetX(2)
 pdf.Cell(5, textypos, "NOMBRE DE LA EMPRESA")

@@ -21,8 +21,8 @@ pdf.Output('F',`test.pdf`);
 - [x] courier
 - [x] helvetica
 - [x] symbol
-- [ ] times
-- [ ] zapfdingbats
+- [x] times
+- [x] zapfdingbats
 
 # **Por Hacer en Clase**
 - [x] *AcceptPageBreak - acepta o no un salto de página automático*
