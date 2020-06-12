@@ -42,8 +42,8 @@ pdf.Output('F',`test.pdf`);
 - [ ] *Image - imprime una imagen*
 - [x] *Line - dibuja un línea*
 - [x] *Link - pone una referencia*
-- [X] *Ln - salto de línea*
-- [ ] *MultiCell - imprime texto con saltos de línea*
+- [x] *Ln - salto de línea*
+- [x] *MultiCell - imprime texto con saltos de línea*
 - [x] *Output - guarda o envía el documento*
 - [x] *PageNo - número de página*
 - [x] *Rect - dibuja un rectangulo*
@@ -69,7 +69,7 @@ pdf.Output('F',`test.pdf`);
 - [x] *SetXY - establece la posición actual de x y y*
 - [x] *SetY - establece la posición actual de y*
 - [x] *Text - imprime una cadena*
-- [ ] *Write - imprime el siguiente texto*
+- [x] *Write - imprime el siguiente texto*
 
 
 

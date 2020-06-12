@@ -4,7 +4,7 @@ const Font={
     name:'Courier',
     up:-100,
     ut:50,
-    cw:new Array(255),
+    cw:{},
     enc:'cp1252',
     uv:{
         0:[0,128],
