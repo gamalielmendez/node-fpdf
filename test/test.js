@@ -1,11 +1,9 @@
 const FPDF = require('../index')
 const { strtoupper, substr } = require('../src/PHP_CoreFunctions')
 
-
-
 let textypos = 5;
 
-const pdf = new FPDF($orientation = 'P', $unit = 'mm', [45, 350]);
+const pdf = new FPDF('P','mm', [45, 350]);
 
 pdf.AddPage()
 pdf.SetFont('Arial', 'B', 8) //Letra Arial, negrita (Bold), tam. 20

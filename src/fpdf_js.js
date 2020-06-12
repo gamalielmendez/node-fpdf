@@ -442,7 +442,7 @@ module.exports = class FPDF {
         if (!isset(this.fonts[fontkey])) {
             // Test if one of the core fonts
             if (family === 'arial') {
-                family = 'courier';
+                family = 'helvetica';
             }
 
             if (in_array(family, this.CoreFonts)) {
