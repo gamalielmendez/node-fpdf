@@ -1,6 +1,7 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
     chr, function_exists, count, ord, sprintf, is_array } = require('./PHP_CoreFunctions')
 const fs = require('fs')
+const { Console } = require('console')
 
 module.exports = class FPDF {
 
@@ -367,6 +368,7 @@ module.exports = class FPDF {
     }
 
     Rect(x, y, w, h, style = '') {
+        let op
         // Draw a rectangle
         if (style === 'F')
             op = 'f';
@@ -395,7 +397,7 @@ module.exports = class FPDF {
             return;
         }
 
-        let info = this._loadfont(file);
+        const info = this._loadfont(file);
         info['i'] = count(this.fonts) + 1;
 
         if (info['file']) {
@@ -407,16 +409,17 @@ module.exports = class FPDF {
 
         }
 
-        this.fonts[fontkey] = info;
+        this.fonts[fontkey] = {...info};
     }
 
     SetFont(family, style = '', size = 0) {
         // Select a font; size given in points
-        if (family === '')
+        if (family === ''){
             family = this.FontFamily;
-        else
+        }else{
             family = strtolower(family);
-
+        }
+            
         style = strtoupper(style);
         if (strpos(style, 'U') !== -1) {
             this.underline = true;
@@ -465,7 +468,7 @@ module.exports = class FPDF {
         this.FontStyle = style;
         this.FontSizePt = size;
         this.FontSize = size / this.k;
-        this.CurrentFont = this.fonts[fontkey];
+        this.CurrentFont = {...this.fonts[fontkey]};
 
         if (this.page > 0) {
             this._out(sprintf('BT /F%d %.2f Tf ET', this.CurrentFont['i'], this.FontSizePt));
@@ -652,7 +655,7 @@ module.exports = class FPDF {
         if (w == 0) {
             w = this.w - this.rMargin - this.x;
         }
-
+        
         let wmax = (w - 2 * this.cMargin) * 1000 / this.FontSize;
         let s = str_replace("\r", '', txt);
         let nb = strlen(s);
@@ -782,8 +785,11 @@ module.exports = class FPDF {
         }
 
         let cw = this.CurrentFont['cw'];
+        //this.x = this.lMargin;
         let w = this.w - this.rMargin - this.x;
-        let wmax = (w - 2 * this.cMargin) * 1000 / this.FontSize;
+        let wmax = ((w - 2 * this.cMargin) * 1000 / this.FontSize);
+        //console.log('wmax primer calculo',wmax)
+
         let s = str_replace("\r", '', txt);
         let nb = strlen(s);
         let sep = -1;
@@ -791,34 +797,48 @@ module.exports = class FPDF {
         let j = 0;
         let l = 0;
         let nl = 1;
+        let c='';
 
         while (i < nb) {
             // Get next character
-            let c = s.charAt(i);
+            c = s.charAt(i);
+            if(!l){
+                //console.log(c)
+                //console.log(cw[c])
+                //console.log(l)
+                //console.log(c==="\n")
+            }
 
-            if (c == "\n") {
+            if (c === "\n") {
                 // Explicit line break
                 this.Cell(w, h, substr(s, j, i - j), 0, 2, '', false, link);
                 i++;
                 sep = -1;
-                j = $i;
+                j = i;
                 l = 0;
 
                 if (nl === 1) {
                     this.x = this.lMargin;
                     w = this.w - this.rMargin - this.x;
                     wmax = (w - 2 * this.cMargin) * 1000 / this.FontSize;
+                    
                 }
 
                 nl++;
+                //console.log('wmax salto linea calculo',wmax)
+                
                 continue;
             }
-
+            
             if (c === ' ') {
                 sep = i;
             }
 
             l += cw[c];
+            if(typeof cw[c] !=='number'){
+                console.log(c)
+            }
+
             if (l > wmax) {
                 // Automatic line break
                 if (sep === -1) {
@@ -853,6 +873,7 @@ module.exports = class FPDF {
                     wmax = (w - 2 * this.cMargin) * 1000 / this.FontSize;
                 }
                 nl++;
+
             } else {
                 i++;
             }
@@ -1158,7 +1179,7 @@ module.exports = class FPDF {
         }
 
 
-        return obj
+        return {...obj}
     }
 
     _isascii(s) {
