@@ -2,6 +2,7 @@ const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, is
     chr, function_exists, count, ord, sprintf, is_array, gzcompress } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
+const { Readable } = require('stream');
 
 module.exports = class FPDF {
 
@@ -9,12 +10,11 @@ module.exports = class FPDF {
 
         // Initialization of properties
         this.FPDF_VERSION = '1.82'
-        this.buffer = ''
         this.AliasNbPages = ''
         this.state = 0;
         this.page = 0;
         this.n = 2;
-        this.buffer = '';
+        this.buffer = new Readable({read() {} });
         this.pages = {};
         this.PageInfo = new Array();
         this.fonts = {};
@@ -37,12 +37,13 @@ module.exports = class FPDF {
         this.WithAlpha = false;
         this.ws = 0;
         this.AutoPageBreak = true
+        this.offset =0
         //fixes php to javascript
         this.offsets = {}
         this.PageLinks = {}
         this.metadata = {}
         //end fixes
-
+        
         // Font path
         this.fontpath = `${__dirname}/fonts/`
         // Core fonts
@@ -903,10 +904,11 @@ module.exports = class FPDF {
                     this.Error(`Image file has no extension and no type was specified: ${file}`);
                 }
                 type = substr(file, pos + 1);
+
             }
 
             type = strtolower(type);
-            if (type == 'jpeg') {
+            if (type === 'jpeg') {
                 type = 'jpg';
             }
 
@@ -918,7 +920,7 @@ module.exports = class FPDF {
             info = this[mtd](file);
             info['i'] = count(this.images) + 1;
          
-            this.images[file] = info;
+            this.images[file] = {...info};
 
         } else {
             info = this.images[file];
@@ -1023,7 +1025,7 @@ module.exports = class FPDF {
 
         switch (dest.toLowerCase()) {
             case 'f':
-                fs.writeFileSync(name, this.buffer);
+                this.buffer.pipe(fs.createWriteStream(name))
                 break;
             case 's':
                 return this.buffer;
@@ -1286,23 +1288,31 @@ module.exports = class FPDF {
         return { 'w': a.width, 'h': a.height, 'cs': colspace, 'bpc': bpc, 'f': 'DCTDecode', 'data': data }
     }
 
-    _parsepng(file) {   /*
-        // Extract info from a PNG file
-        $f = fopen($file,'rb');
-        if(!$f)
-            $this->Error('Can\'t open image file: '.$file);
-        $info = $this->_parsepngstream($f,$file);
-        fclose($f);
+    _parsepng(file) {   
+        /*
+        const F = LoadPng(file)
+    
+        if(!f){
+            this.Error(`Can\'t open image file: ${file}`);
+        }
+            
+        info = this._parsepngstream(f,file);
+       
         return $info;
-        */
+    */
+         this.Error(`support for png files in progress`);
     }
 
     _parsepngstream($f, $file) {
-        /*
+
+        
         // Check signature
-        if($this->_readstream($f,8)!=chr(137).'PNG'.chr(13).chr(10).chr(26).chr(10))
-            $this->Error('Not a PNG file: '.$file);
+        if(this._readstream(f,8)!==chr(137)+'PNG'+chr(13)+chr(10)+chr(26)+chr(10)){
+            this.Error('Not a PNG file: '+file);
+        }
+            
     
+        /*
         // Read header chunk
         $this->_readstream($f,4);
         if($this->_readstream($f,4)!='IHDR')
@@ -1488,9 +1498,17 @@ module.exports = class FPDF {
 
     }
 
-    _put(s) { this.buffer += `${s}\n`; }
+    _put(s) { 
+        
+        if (!Buffer.isBuffer(s)) {
+            s = Buffer.from(s + '\n', 'binary')
+        }
 
-    _getoffset() { return strlen(this.buffer); }
+        this.buffer.push(s)// += `${s}\n`; 
+        this.offset+=s.length
+    }
+
+    _getoffset() { return this.offset }
 
     _newobj(n = null) {
         // Begin a new object
@@ -1510,17 +1528,20 @@ module.exports = class FPDF {
 
     _putstreamobject(data) {
         let entries
+        let Result
         if (this.compress) {
             entries = '/Filter /FlateDecode ';
-            data = gzcompress(data);
+            Result = gzcompress(data);
         } else {
+        
             entries = '';
+            Result=data
         }
 
-        entries += `/Length ${strlen(data)}`;
+        entries += `/Length ${Result.length}`;
         this._newobj();
         this._put(`<<${entries}>>`);
-        this._putstream(data);
+        this._putstream(Result);
         this._put('endobj');
     }
 

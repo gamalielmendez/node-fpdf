@@ -1,12 +1,10 @@
 const FPDF = require('../index')
-const { strtoupper, substr, count } = require('../src/PHP_CoreFunctions')
-
 
 let textColour = [0, 0, 0];
 let logoFile = `${__dirname}/descarga.jpeg`;
 let logoXPos = 50;
 let logoYPos = 108;
-let logoWidth = 110;
+let logoWidth = 100;
 
 const pdf = new FPDF('P', 'mm', 'A4');
 

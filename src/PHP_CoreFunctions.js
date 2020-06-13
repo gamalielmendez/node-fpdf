@@ -1,3 +1,5 @@
+const zlib= require('zlib');
+
 const sprintf = require('sprintf-js').sprintf
 
 const substr_count= (S, search) => { return S.split(search).length - 1; }
@@ -46,7 +48,7 @@ const function_exists= (cModule) => {
 
     try {
         const test = require(cModule)
-        return false
+        return true
     } catch (error) {
         return false
     }
@@ -106,12 +108,11 @@ const ord= (string) => {
 }
 
 const gzcompress= (data)=>{
-    
-    const zlib = require('zlib');
-    const mbuffer = Buffer.from(data)
-    var z1 = zlib.deflateSync( mbuffer);
-    return z1.toString()
 
+    const chunk = Buffer.from(data)
+    const Z1=zlib.deflateSync(chunk)
+    
+    return Z1
 }
 
 module.exports = {

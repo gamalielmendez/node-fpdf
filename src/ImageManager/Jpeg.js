@@ -1,6 +1,16 @@
 
 const fs = require('fs');
 
+var Readable = require('stream').Readable; 
+
+function bufferToStream(buffer) { 
+  var stream = new Readable();
+  stream.push(buffer);
+  stream.push(null);
+
+  return stream;
+}
+
 const MARKERS = [
     0xffc0,
     0xffc1,
@@ -86,8 +96,7 @@ const LoadJpeg = (src) => {
             bits,
             channels,
             colorSpace,
-            data:data.toString(),
-            type:'jpg'
+            data: data
         };
 
         return Img

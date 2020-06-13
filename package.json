@@ -1,13 +1,14 @@
 {
   "name": "node-fpdf",
-  "version": "1.0.12",
+  "version": "1.0.13",
   "description": "port de la libreria de FPDF de PHP",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "test": "node ./test/ImageReport.js"
+    "test1": "node ./test/ImageReport.js",
+    "test2": "node ./test/ReportSample.js"
   },
   "repository": {
     "type": "git",
@@ -31,6 +32,7 @@
   },
   "homepage": "https://github.com/gamalielmendez/fpdf_js#readme",
   "dependencies": {
+    "png-js": "^1.0.0",
     "sprintf-js": "^1.1.2"
   }
 }

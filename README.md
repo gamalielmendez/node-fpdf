@@ -40,7 +40,7 @@ pdf.Output('F',`test.pdf`);
 - [x] *GetX - obtiene la posición actual de x*
 - [x] *GetY - obtiene la posición actual de y*
 - [x] *Header - cabecera de página*
-- [ ] *Image - imprime una imagen*
+- [-] *Image - imprime una imagen  (actualmente solo soporta archivos jpeg y jpf) *
 - [x] *Line - dibuja un línea*
 - [x] *Link - pone una referencia*
 - [x] *Ln - salto de línea*
