@@ -7,7 +7,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "node ./test/ReportSample.js && node ./test/TicketSample.js"
+    "test": "node ./test/ImageReport.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,8 @@
   },
   "homepage": "https://github.com/gamalielmendez/fpdf_js#readme",
   "dependencies": {
+    "image-js": "^0.21.9",
+    "image-size": "^0.8.3",
     "sprintf-js": "^1.1.2"
   }
 }

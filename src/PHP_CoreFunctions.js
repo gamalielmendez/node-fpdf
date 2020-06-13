@@ -18,7 +18,15 @@ const strpos= (str, searchvalue) => { return str.indexOf(searchvalue) }
 
 const substr= (str, start, length) => { return str.substr(start, length) }
 
-const method_exists= (obj, method) => { return false }
+const method_exists= (obj, method) => { 
+
+    if(method in obj){
+        return typeof obj[method]==='function'
+    }else{
+        return false 
+    }
+     
+}
 
 const chr= (charCode) =>{ return String.fromCharCode(charCode) }
 
@@ -38,7 +46,7 @@ const function_exists= (cModule) => {
 
     try {
         const test = require(cModule)
-        return true
+        return false
     } catch (error) {
         return false
     }
@@ -97,6 +105,15 @@ const ord= (string) => {
     return code
 }
 
+const gzcompress= (data)=>{
+    
+    const zlib = require('zlib');
+    const mbuffer = Buffer.from(data)
+    var z1 = zlib.deflateSync( mbuffer);
+    return z1.toString()
+
+}
+
 module.exports = {
     substr_count,
     strtolower,
@@ -114,5 +131,6 @@ module.exports = {
     count,
     ord,
     sprintf,
-    is_array
+    is_array,
+    gzcompress
 }

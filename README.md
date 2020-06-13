@@ -72,5 +72,3 @@ pdf.Output('F',`test.pdf`);
 - [x] *Text - imprime una cadena*
 - [x] *Write - imprime el siguiente texto*
 
-
-

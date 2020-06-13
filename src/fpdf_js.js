@@ -1,7 +1,7 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
-    chr, function_exists, count, ord, sprintf, is_array } = require('./PHP_CoreFunctions')
+    chr, function_exists, count, ord, sprintf, is_array, gzcompress } = require('./PHP_CoreFunctions')
 const fs = require('fs')
-const { Console } = require('console')
+const LoadJpeg = require('./ImageManager/Jpeg');
 
 module.exports = class FPDF {
 
@@ -21,7 +21,7 @@ module.exports = class FPDF {
         this.FontFiles = {};
         this.encodings = [];
         this.cmaps = [];
-        this.images = [];
+        this.images = {};
         this.links = [];
         this.InHeader = false;
         this.InFooter = false;
@@ -38,9 +38,9 @@ module.exports = class FPDF {
         this.ws = 0;
         this.AutoPageBreak = true
         //fixes php to javascript
-        this.offsets={}
-        this.PageLinks={}
-        this.metadata={}
+        this.offsets = {}
+        this.PageLinks = {}
+        this.metadata = {}
         //end fixes
 
         // Font path
@@ -98,6 +98,7 @@ module.exports = class FPDF {
         this.SetCompression(true);
         // Set default PDF version number
         this.PDFVersion = '1.3';
+
     }
 
     SetMargins(left, top, right = null) {
@@ -157,7 +158,7 @@ module.exports = class FPDF {
 
     SetCompression(compress) {
         // Set page compression
-        if (function_exists('gzcompress')) {
+        if (function_exists('zlib')) {
             this.compress = compress;
         } else {
             this.compress = false;
@@ -339,6 +340,7 @@ module.exports = class FPDF {
     }
 
     GetStringWidth(s) {
+
         // Get width of a string in the current font
         s = `${s}`;
         let cw = this.CurrentFont['cw'];
@@ -409,17 +411,17 @@ module.exports = class FPDF {
 
         }
 
-        this.fonts[fontkey] = {...info};
+        this.fonts[fontkey] = { ...info };
     }
 
     SetFont(family, style = '', size = 0) {
         // Select a font; size given in points
-        if (family === ''){
+        if (family === '') {
             family = this.FontFamily;
-        }else{
+        } else {
             family = strtolower(family);
         }
-            
+
         style = strtoupper(style);
         if (strpos(style, 'U') !== -1) {
             this.underline = true;
@@ -468,7 +470,7 @@ module.exports = class FPDF {
         this.FontStyle = style;
         this.FontSizePt = size;
         this.FontSize = size / this.k;
-        this.CurrentFont = {...this.fonts[fontkey]};
+        this.CurrentFont = { ...this.fonts[fontkey] };
 
         if (this.page > 0) {
             this._out(sprintf('BT /F%d %.2f Tf ET', this.CurrentFont['i'], this.FontSizePt));
@@ -655,7 +657,7 @@ module.exports = class FPDF {
         if (w == 0) {
             w = this.w - this.rMargin - this.x;
         }
-        
+
         let wmax = (w - 2 * this.cMargin) * 1000 / this.FontSize;
         let s = str_replace("\r", '', txt);
         let nb = strlen(s);
@@ -797,17 +799,11 @@ module.exports = class FPDF {
         let j = 0;
         let l = 0;
         let nl = 1;
-        let c='';
+        let c = '';
 
         while (i < nb) {
             // Get next character
             c = s.charAt(i);
-            if(!l){
-                //console.log(c)
-                //console.log(cw[c])
-                //console.log(l)
-                //console.log(c==="\n")
-            }
 
             if (c === "\n") {
                 // Explicit line break
@@ -821,23 +817,18 @@ module.exports = class FPDF {
                     this.x = this.lMargin;
                     w = this.w - this.rMargin - this.x;
                     wmax = (w - 2 * this.cMargin) * 1000 / this.FontSize;
-                    
+
                 }
 
                 nl++;
-                //console.log('wmax salto linea calculo',wmax)
-                
                 continue;
             }
-            
+
             if (c === ' ') {
                 sep = i;
             }
 
             l += cw[c];
-            if(typeof cw[c] !=='number'){
-                console.log(c)
-            }
 
             if (l > wmax) {
                 // Automatic line break
@@ -907,8 +898,8 @@ module.exports = class FPDF {
             // First use of this image, get info
             if (type === '') {
 
-                let pos = strrpos(file, '.');
-                if (!$pos) {
+                let pos = strpos(file, '.');
+                if (pos == -1) {
                     this.Error(`Image file has no extension and no type was specified: ${file}`);
                 }
                 type = substr(file, pos + 1);
@@ -924,9 +915,11 @@ module.exports = class FPDF {
                 this.Error('Unsupported image type: ' + $type);
             }
 
-            info = this.mtd(file);
+            info = this[mtd](file);
             info['i'] = count(this.images) + 1;
+         
             this.images[file] = info;
+
         } else {
             info = this.images[file];
         }
@@ -938,15 +931,11 @@ module.exports = class FPDF {
             h = -96;
         }
 
-        if (w < 0)
-            w = -info['w'] * 72 / w / this.k;
-        if (h < 0)
-            h = -info['h'] * 72 / h / this.k;
-        if (w == 0)
-            w = h * info['w'] / info['h'];
-        if (h == 0)
-            h = w * info['h'] / info['w'];
-
+        if (w < 0){ w = -info['w'] * 72 / w / this.k; }   
+        if (h < 0){ h = -info['h'] * 72 / h / this.k;}  
+        if (w === 0){ w = h * info['w'] / info['h']; }   
+        if (h === 0){ h = w * info['h'] / info['w'];}
+            
         // Flowing mode
         if (y === null) {
             if (this.y + h > this.PageBreakTrigger && !this.InHeader && !this.InFooter && this.AcceptPageBreak()) {
@@ -967,6 +956,7 @@ module.exports = class FPDF {
         if (link) {
             this.Link(x, y, w, h, link);
         }
+
     }
 
     GetPageWidth() {
@@ -1179,7 +1169,7 @@ module.exports = class FPDF {
         }
 
 
-        return {...obj}
+        return { ...obj }
     }
 
     _isascii(s) {
@@ -1275,22 +1265,25 @@ module.exports = class FPDF {
     }
 
     _parsejpg(file) {
-        /*// Extract info from a JPEG file
-        $a = getimagesize($file);
-        if(!$a)
-            $this->Error('Missing or incorrect image file: '.$file);
-        if($a[2]!=2)
-            $this->Error('Not a JPEG file: '.$file);
-        if(!isset($a['channels']) || $a['channels']==3)
-            $colspace = 'DeviceRGB';
-        elseif($a['channels']==4)
-            $colspace = 'DeviceCMYK';
-        else
-            $colspace = 'DeviceGray';
-        $bpc = isset($a['bits']) ? $a['bits'] : 8;
-        $data = file_get_contents($file);
-        return array('w'=>$a[0], 'h'=>$a[1], 'cs'=>$colspace, 'bpc'=>$bpc, 'f'=>'DCTDecode', 'data'=>$data);
-        */
+
+        const a = LoadJpeg(file)
+
+        if (!a) {
+            this.Error('Missing or incorrect image file: ' + file);
+        }
+
+        let colspace
+        if (!isset(a.channels) || a.channels == 3) {
+            colspace = 'DeviceRGB';
+        } else if ($a['channels'] == 4) {
+            colspace = 'DeviceCMYK';
+        } else {
+            colspace = 'DeviceGray';
+        }
+
+        let bpc = isset(a.bits) ? a.bits : 8;
+        let data = a.data
+        return { 'w': a.width, 'h': a.height, 'cs': colspace, 'bpc': bpc, 'f': 'DCTDecode', 'data': data }
     }
 
     _parsepng(file) {   /*
@@ -1495,13 +1488,9 @@ module.exports = class FPDF {
 
     }
 
-    _put(s) {
-        this.buffer += `${s}\n`;
-    }
+    _put(s) { this.buffer += `${s}\n`; }
 
-    _getoffset() {
-        return strlen(this.buffer);
-    }
+    _getoffset() { return strlen(this.buffer); }
 
     _newobj(n = null) {
         // Begin a new object
@@ -1630,7 +1619,7 @@ module.exports = class FPDF {
     _putfonts() {
 
         for (const key in this.FontFiles) {
-     
+
             // Font file embedding
             const info = this.FontFiles[key]
             this._newobj()
@@ -1661,14 +1650,14 @@ module.exports = class FPDF {
 
         //this.fonts as $k=>$font)
         for (const k in this.fonts) {
-     
+
             let font = this.fonts[k]
             let s
             // Encoding
             if (isset(font['diff'])) {
 
                 if (!isset(this.encodings[font['enc']])) {
-        
+
                     this._newobj();
                     this._put(`<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${font['diff']}]>>`);
                     this._put('endobj');
@@ -1707,7 +1696,7 @@ module.exports = class FPDF {
                 // Core font
                 this._newobj();
                 this._put('<</Type /Font');
-                this._put('/BaseFont /'+name);
+                this._put('/BaseFont /' + name);
                 this._put('/Subtype /Type1');
 
                 if (name !== 'Symbol' && name !== 'ZapfDingbats') {
@@ -1793,7 +1782,7 @@ module.exports = class FPDF {
         for (const key in uv) {
 
             let v = uv[key]
- 
+
             if (is_array(v)) {
                 ranges += sprintf("<%02X> <%02X> <%04X>\n", key, key + v[1] - 1, v[0]);
                 nbr++;
@@ -1838,75 +1827,93 @@ module.exports = class FPDF {
         return s;
     }
 
-    _putimages()
-    {
-        /*foreach(array_keys($this->images) as $file)
-        {
-            $this->_putimage($this->images[$file]);
-            unset($this->images[$file]['data']);
-            unset($this->images[$file]['smask']);
-        }*/
+    _putimages() {
+
+        for (const key in this.images) {
+            
+            const image = this.images[key];
+            this._putimage(image);
+            delete this.images[key].data
+            delete this.images[key].smask
+        }
+
     }
 
-    _putimage(info)
-    {
-        /*$this->_newobj();
-        $info['n'] = $this->n;
-        $this->_put('<</Type /XObject');
-        $this->_put('/Subtype /Image');
-        $this->_put('/Width '.$info['w']);
-        $this->_put('/Height '.$info['h']);
-        if($info['cs']=='Indexed')
-            $this->_put('/ColorSpace [/Indexed /DeviceRGB '.(strlen($info['pal'])/3-1).' '.($this->n+1).' 0 R]');
-        else
-        {
-            $this->_put('/ColorSpace /'.$info['cs']);
-            if($info['cs']=='DeviceCMYK')
-                $this->_put('/Decode [1 0 1 0 1 0 1 0]');
+    _putimage(info) {
+
+        this._newobj();
+        
+        info['n'] = this.n;
+        
+        this._put('<</Type /XObject');
+        this._put('/Subtype /Image');
+        this._put(`/Width ${info['w']}`);
+        this._put(`/Height ${info['h']}`);
+
+        if(info['cs']==='Indexed'){
+            this._put(`/ColorSpace [/Indexed /DeviceRGB ${strlen(info['pal'])/3-1} ${(this.n+1)} 0 R]`);
+        }else{
+            this._put(`/ColorSpace /${info['cs']}`);
+            if(info['cs']==='DeviceCMYK'){
+                this._put('/Decode [1 0 1 0 1 0 1 0]');
+            }    
         }
-        $this->_put('/BitsPerComponent '.$info['bpc']);
-        if(isset($info['f']))
-            $this->_put('/Filter /'.$info['f']);
-        if(isset($info['dp']))
-            $this->_put('/DecodeParms <<'.$info['dp'].'>>');
-        if(isset($info['trns']) && is_array($info['trns']))
-        {
-            $trns = '';
-            for($i=0;$i<count($info['trns']);$i++)
-                $trns .= $info['trns'][$i].' '.$info['trns'][$i].' ';
-            $this->_put('/Mask ['.$trns.']');
+
+        this._put(`/BitsPerComponent ${info['bpc']}`);
+        if(isset(info['f'])){
+            this._put(`/Filter /${info['f']}`);
         }
-        if(isset($info['smask']))
-            $this->_put('/SMask '.($this->n+1).' 0 R');
-        $this->_put('/Length '.strlen($info['data']).'>>');
-        $this->_putstream($info['data']);
-        $this->_put('endobj');
+            
+        if(isset(info['dp'])){
+            this._put(`/DecodeParms <<${info['dp']}>>`);
+        }
+
+        if(isset(info['trns']) && is_array(info['trns'])){
+            
+            let trns = '';
+            for(let i=0;i<count(info['trns']);i++){
+                trns +=` ${info['trns'][i]} ${info['trns'][$i]} `;
+            }
+                
+            this._put(`/Mask [${trns}]`);
+        }
+
+        if(isset(info['smask'])){
+            this._put(`/SMask ${(this.n+1)} 0 R`);
+        }
+            
+        this._put(`/Length ${strlen(info['data'])}>>`);
+        this._putstream(info['data']);
+        this._put('endobj');
+
         // Soft mask
-        if(isset($info['smask']))
-        {
-            $dp = '/Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns '.$info['w'];
-            $smask = array('w'=>$info['w'], 'h'=>$info['h'], 'cs'=>'DeviceGray', 'bpc'=>8, 'f'=>$info['f'], 'dp'=>$dp, 'data'=>$info['smask']);
-            $this->_putimage($smask);
+        if(isset(info['smask'])){
+            let dp = `/Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns ${info['w']}`;
+            let smask = {'w':info['w'], 'h':info['h'], 'cs':'DeviceGray', 'bpc':8, 'f':info['f'], 'dp':dp, 'data':info['smask']};
+            this._putimage(smask);
         }
+
         // Palette
-        if($info['cs']=='Indexed')
-            $this->_putstreamobject($info['pal']);
-        */
+        if(info['cs']==='Indexed'){
+            this._putstreamobject(info['pal']);
+        }
+             
     }
-    
-    _putxobjectdict()
-    {
-        /*foreach($this->images as $image)
-            $this->_put('/I'.$image['i'].' '.$image['n'].' 0 R');
-        */
+
+    _putxobjectdict() {
+        
+        for (const key in this.images) {
+            const image = this.images[key];
+            this._put(`/I${image['i']} ${image['n']} 0 R`);   
+            
+        }
 
     }
 
-    _putresourcedict()
-    {
+    _putresourcedict() {
         this._put('/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]');
         this._put('/Font <<');
-        
+
         for (const key in this.fonts) {
             const font = this.fonts[key]
             this._put(`/F${font['i']} ${font['n']} 0 R`);
@@ -1918,8 +1925,7 @@ module.exports = class FPDF {
         this._put('>>');
     }
 
-    _putresources()
-    {
+    _putresources() {
         this._putfonts();
         this._putimages();
         // Resource dictionary
@@ -1930,13 +1936,12 @@ module.exports = class FPDF {
         this._put('endobj');
     }
 
-    _putinfo()
-    {   
+    _putinfo() {
         const date = new Date();
         const YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
-        this.metadata['Producer'] = 'FPDF '+this.PDFVersion
-        this.metadata['CreationDate'] = 'D:'+YYYYMMDDHHMMSS;
-        
+        this.metadata['Producer'] = 'FPDF ' + this.PDFVersion
+        this.metadata['CreationDate'] = 'D:' + YYYYMMDDHHMMSS;
+
         for (const key in this.metadata) {
             const value = this.metadata[key]
             this._put(`/${key} ${this._textstring(value)}`);
@@ -1944,43 +1949,39 @@ module.exports = class FPDF {
 
     }
 
-    _putcatalog()
-    {
+    _putcatalog() {
         let n = this.PageInfo[1]['n'];
         this._put('/Type /Catalog');
         this._put('/Pages 1 0 R');
 
-        if(this.ZoomMode==='fullpage')
+        if (this.ZoomMode === 'fullpage')
             this._put(`/OpenAction [${n} 0 R /Fit]`);
-        else if(this.ZoomMode==='fullwidth')
+        else if (this.ZoomMode === 'fullwidth')
             this._put(`/OpenAction [${n} 0 R /FitH null]`);
-        else if(this.ZoomMode==='real')
+        else if (this.ZoomMode === 'real')
             this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
-        else if(!is_string(this.ZoomMode))
-            this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f',this.ZoomMode/100)}]`);
-        
-        if(this.LayoutMode==='single')
+        else if (!is_string(this.ZoomMode))
+            this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f', this.ZoomMode / 100)}]`);
+
+        if (this.LayoutMode === 'single')
             this._put('/PageLayout /SinglePage');
-        else if(this.LayoutMode==='continuous')
+        else if (this.LayoutMode === 'continuous')
             this._put('/PageLayout /OneColumn');
-        else if(this.LayoutMode==='two')
+        else if (this.LayoutMode === 'two')
             this._put('/PageLayout /TwoColumnLeft');
     }
 
-    _putheader()
-    {
-        this._put('%PDF-'+this.PDFVersion);
-    }
-    
-    _puttrailer()
-    {
-        this._put(`/Size ${this.n+1}`);
-        this._put(`/Root ${this.n} 0 R`);
-        this._put(`/Info ${this.n-1} 0 R`);
+    _putheader() {
+        this._put('%PDF-' + this.PDFVersion);
     }
 
-    _enddoc()
-    {
+    _puttrailer() {
+        this._put(`/Size ${this.n + 1}`);
+        this._put(`/Root ${this.n} 0 R`);
+        this._put(`/Info ${this.n - 1} 0 R`);
+    }
+
+    _enddoc() {
         this._putheader();
         this._putpages();
         this._putresources();
@@ -1999,13 +2000,13 @@ module.exports = class FPDF {
         // Cross-ref
         let offset = this._getoffset();
         this._put('xref');
-        this._put(`0 ${this.n+1}`);
+        this._put(`0 ${this.n + 1}`);
         this._put('0000000000 65535 f ');
-        
-        for(let i=1;i<=this.n;i++){
-            this._put(sprintf('%010d 00000 n ',this.offsets[i]));
+
+        for (let i = 1; i <= this.n; i++) {
+            this._put(sprintf('%010d 00000 n ', this.offsets[i]));
         }
-        
+
         // Trailer
         this._put('trailer');
         this._put('<<');
