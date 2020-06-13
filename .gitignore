@@ -8,3 +8,7 @@ package-lock.json
 
 //se ignoran los pdfs
 *.pdf
+*.jpeg
+*.jpg
+*.png
+*.gif
