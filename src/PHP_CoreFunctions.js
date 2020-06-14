@@ -108,11 +108,14 @@ const ord= (string) => {
 }
 
 const gzcompress= (data)=>{
+    const chunk =(!Buffer.isBuffer(data))?Buffer.from(data,'binary'):data
+    return zlib.deflateSync(chunk)
+}
 
-    const chunk = Buffer.from(data)
-    const Z1=zlib.deflateSync(chunk)
-    
-    return Z1
+const gzuncompress = (data) =>{
+    const chunk =(!Buffer.isBuffer(data))?Buffer.from(data,'binary'):data
+    const Z1=zlib.inflateSync(chunk)  
+    return Z1.toString('binary')//'ascii'
 }
 
 module.exports = {
@@ -133,5 +136,6 @@ module.exports = {
     ord,
     sprintf,
     is_array,
-    gzcompress
+    gzcompress,
+    gzuncompress
 }

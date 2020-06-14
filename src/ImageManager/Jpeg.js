@@ -1,33 +1,7 @@
 
 const fs = require('fs');
 
-var Readable = require('stream').Readable; 
-
-function bufferToStream(buffer) { 
-  var stream = new Readable();
-  stream.push(buffer);
-  stream.push(null);
-
-  return stream;
-}
-
-const MARKERS = [
-    0xffc0,
-    0xffc1,
-    0xffc2,
-    0xffc3,
-    0xffc5,
-    0xffc6,
-    0xffc7,
-    0xffc8,
-    0xffc9,
-    0xffca,
-    0xffcb,
-    0xffcc,
-    0xffcd,
-    0xffce,
-    0xffcf
-];
+const MARKERS = [0xffc0,0xffc1,0xffc2,0xffc3,0xffc5,0xffc6,0xffc7,0xffc8,0xffc9,0xffca,0xffcb,0xffcc,0xffcd,0xffce,0xffcf];
 
 const COLOR_SPACE_MAP = {
     1: 'DeviceGray',

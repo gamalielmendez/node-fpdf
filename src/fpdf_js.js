@@ -1,7 +1,8 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
-    chr, function_exists, count, ord, sprintf, is_array, gzcompress } = require('./PHP_CoreFunctions')
+    chr, function_exists, count, ord, sprintf, is_array, gzcompress,gzuncompress } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
+
 const { Readable } = require('stream');
 
 module.exports = class FPDF {
@@ -1186,6 +1187,19 @@ module.exports = class FPDF {
 
         return true;
     }
+    
+    _TextToAscii(s) {
+        // Test if string is ASCII
+        let nb = strlen(s);
+        let res=''
+        for (let i = 0; i < nb; i++) {
+            
+            let c=s.codePointAt(i)
+            res+=String.fromCodePoint(c)
+    
+        }
+        return res
+    }
 
     _httpencode(param, value, isUTF8) {
         // Encode HTTP header field parameter
@@ -1289,174 +1303,206 @@ module.exports = class FPDF {
     }
 
     _parsepng(file) {   
-        /*
-        const F = LoadPng(file)
-    
-        if(!f){
-            this.Error(`Can\'t open image file: ${file}`);
-        }
-            
-        info = this._parsepngstream(f,file);
-       
-        return $info;
-    */
-         this.Error(`support for png files in progress`);
+           
+        const f =fs.openSync(file)
+        const info= this._parsepngstream(f,file)
+        fs.closeSync(f)
+        return info
+ 
     }
 
-    _parsepngstream($f, $file) {
+    _parsepngstream(f, file) {
 
-        
         // Check signature
-        if(this._readstream(f,8)!==chr(137)+'PNG'+chr(13)+chr(10)+chr(26)+chr(10)){
+        if(this._readstream(f,8)!==`${chr(137)}PNG${chr(13)}${chr(10)}${chr(26)}${chr(10)}`){
             this.Error('Not a PNG file: '+file);
         }
             
-    
-        /*
         // Read header chunk
-        $this->_readstream($f,4);
-        if($this->_readstream($f,4)!='IHDR')
-            $this->Error('Incorrect PNG file: '.$file);
-        $w = $this->_readint($f);
-        $h = $this->_readint($f);
-        $bpc = ord($this->_readstream($f,1));
-        if($bpc>8)
-            $this->Error('16-bit depth not supported: '.$file);
-        $ct = ord($this->_readstream($f,1));
-        if($ct==0 || $ct==4)
-            $colspace = 'DeviceGray';
-        elseif($ct==2 || $ct==6)
-            $colspace = 'DeviceRGB';
-        elseif($ct==3)
-            $colspace = 'Indexed';
-        else
-            $this->Error('Unknown color type: '.$file);
-        if(ord($this->_readstream($f,1))!=0)
-            $this->Error('Unknown compression method: '.$file);
-        if(ord($this->_readstream($f,1))!=0)
-            $this->Error('Unknown filter method: '.$file);
-        if(ord($this->_readstream($f,1))!=0)
-            $this->Error('Interlacing not supported: '.$file);
-        $this->_readstream($f,4);
-        $dp = '/Predictor 15 /Colors '.($colspace=='DeviceRGB' ? 3 : 1).' /BitsPerComponent '.$bpc.' /Columns '.$w;
+        this._readstream(f,4)
+        if(this._readstream(f,4)!=='IHDR'){
+            this.Error('Incorrect PNG file: '+file);
+        }
+        
+        let w = this._readint(f);
+        let h = this._readint(f);
+        let bpc = ord(this._readstream(f,1,true));
+        if(bpc>8){
+            this.Error('16-bit depth not supported: '+file);
+        }
+
+        let ct = ord(this._readstream(f,1,true));
+        let colspace
+        if(ct===0 || ct===4){
+            colspace = 'DeviceGray';
+        }else if(ct===2 || ct==6){
+            colspace = 'DeviceRGB';
+        }else if($ct===3){
+            colspace = 'Indexed';
+        }else{
+            this.Error('Unknown color type: '+file); 
+        }
+        
+        if(ord(this._readstream(f,1))!==0){
+            this.Error('Unknown compression method: '+file);
+        }
+        if(ord(this._readstream(f,1))!==0){
+            this.Error('Unknown filter method: '+file);
+        }
+        if(ord(this._readstream(f,1))!==0){
+            this.Error('Interlacing not supported: '+file);
+        }
+        
+        this._readstream(f,4);
+        let dp = `/Predictor 15 /Colors ${(colspace=='DeviceRGB' ? 3 : 1)} /BitsPerComponent ${bpc} /Columns ${w}`;
     
         // Scan chunks looking for palette, transparency and image data
-        $pal = '';
-        $trns = '';
-        $data = '';
-        do
-        {
-            $n = $this->_readint($f);
-            $type = $this->_readstream($f,4);
-            if($type=='PLTE')
+        let pal = '';
+        let trns = '';
+        let data = '';
+        let n
+        do {
+            
+            n = this._readint(f);   
+            console.log(n)
+            let type = this._readstream(f,4,true);
+            if(type==='PLTE')
             {
                 // Read palette
-                $pal = $this->_readstream($f,$n);
-                $this->_readstream($f,4);
-            }
-            elseif($type=='tRNS')
+                pal = this._readstream(f,n);
+                this._readstream(f,4);
+
+            }else if(type==='tRNS')
             {
                 // Read transparency info
-                $t = $this->_readstream($f,$n);
-                if($ct==0)
-                    $trns = array(ord(substr($t,1,1)));
-                elseif($ct==2)
-                    $trns = array(ord(substr($t,1,1)), ord(substr($t,3,1)), ord(substr($t,5,1)));
-                else
-                {
-                    $pos = strpos($t,chr(0));
-                    if($pos!==false)
-                        $trns = array($pos);
+                let t = this._readstream(f,n);
+                if(ct==0){
+                    trns = [ord(substr(t,1,1))]
+                }else if($ct==2){
+                    trns = [ord(substr(t,1,1)), ord(substr(t,3,1)), ord(substr(t,5,1))];
+                }else{
+                    let pos = strpos(t,chr(0));
+                    if(pos!==-1){
+                        $trns = [pos];
+                    }
+                        
                 }
-                $this->_readstream($f,4);
-            }
-            elseif($type=='IDAT')
-            {
+                this._readstream(f,4);
+            }else if(type==='IDAT'){
                 // Read image data block
-                $data .= $this->_readstream($f,$n);
-                $this->_readstream($f,4);
-            }
-            elseif($type=='IEND')
+                data += this._readstream(f,n,true);
+                this._readstream(f,4);
+            }else if(type=='IEND'){
                 break;
-            else
-                $this->_readstream($f,$n+4);
+            }else{
+                this._readstream(f,n+4);
+            }
+            
+        } while (n);
+
+        if(colspace=='Indexed' && !pal){
+            this.Error('Missing palette in '+file);
         }
-        while($n);
-    
-        if($colspace=='Indexed' && empty($pal))
-            $this->Error('Missing palette in '.$file);
-        $info = array('w'=>$w, 'h'=>$h, 'cs'=>$colspace, 'bpc'=>$bpc, 'f'=>'FlateDecode', 'dp'=>$dp, 'pal'=>$pal, 'trns'=>$trns);
-        if($ct>=4)
-        {
+        
+        let info = {'w':w, 'h':h, 'cs':colspace, 'bpc':bpc, 'f':'FlateDecode', 'dp':dp, 'pal':pal, 'trns':trns};
+
+        if(ct>=4){
+
             // Extract alpha channel
-            if(!function_exists('gzuncompress'))
-                $this->Error('Zlib not available, can\'t handle alpha channel: '.$file);
-            $data = gzuncompress($data);
-            $color = '';
-            $alpha = '';
-            if($ct==4)
-            {
+            if(!function_exists('zlib')){
+                this.Error('Zlib not available, can\'t handle alpha channel: '+file);
+            }
+                
+            data = gzuncompress(data);
+            let color = '';
+            let alpha = '';
+            let hola='hola'
+            if(ct===4){
                 // Gray image
-                $len = 2*$w;
-                for($i=0;$i<$h;$i++)
+                let len = 2*w;
+                for(let i=0;i<h;i++)
                 {
-                    $pos = (1+$len)*$i;
-                    $color .= $data[$pos];
-                    $alpha .= $data[$pos];
-                    $line = substr($data,$pos+1,$len);
-                    $color .= preg_replace('/(.)./s','$1',$line);
-                    $alpha .= preg_replace('/.(.)/s','$1',$line);
+                    let pos = (1+len)*i;
+                    color += data[pos];
+                    alpha += data[pos];
+                    
+                    let line = substr(data.toString('binary'),pos+1,len);
+                    color += str_replace(/(.)./s,'$1',line) //line.replace(/(.)./s,'$1');
+                    alpha += str_replace(/(.)./s,'$1',line)  //line.replace(/.(.)/s,'$1');
                 }
-            }
-            else
-            {
+
+            }else{
                 // RGB image
-                $len = 4*$w;
-                for($i=0;$i<$h;$i++)
+                let len = 4*w;
+                for(let i=0;i<h;i++)
                 {
-                    $pos = (1+$len)*$i;
-                    $color .= $data[$pos];
-                    $alpha .= $data[$pos];
-                    $line = substr($data,$pos+1,$len);
-                    $color .= preg_replace('/(.{3})./s','$1',$line);
-                    $alpha .= preg_replace('/.{3}(.)/s','$1',$line);
+                    let pos = (1+len)*i;
+                    color += data[pos]
+                    alpha += data[pos]
+                    
+                    let line = substr(data.toString('binary'),pos+1,len);
+
+                    
+                    //console.log(line!==str_replace(/(.{3})./s,'$1',line))
+
+                    color += str_replace(/(.{3})./s,'$1',line) //line.replace(,'$1');
+                    alpha += str_replace(/(.{3})./s,'$1',line) //line.replace(/.{3}(.)/s,'$1');
+                    
                 }
             }
-            unset($data);
-            $data = gzcompress($color);
-            $info['smask'] = gzcompress($alpha);
-            $this->WithAlpha = true;
-            if($this->PDFVersion<'1.4')
-                $this->PDFVersion = '1.4';
+
+            data=undefined
+            data = gzcompress(color);
+            info['smask'] = gzcompress(alpha);
+            this.WithAlpha = true;
+            if(this.PDFVersion<'1.4'){
+                this.PDFVersion = '1.4';
+            }
+                
         }
-        $info['data'] = $data;
-        return $info;*/
+
+        info['data'] = data;
+        return info
+
     }
 
-    _readstream($f, $n) {
-        /*
+    _readstream(f,n,lConver=true,Encode='binary') {
+        
         // Read n bytes from stream
-        $res = '';
-        while($n>0 && !feof($f))
+        let res =(lConver)?'':null;
+
+        while(n>0)
         {
-            $s = fread($f,$n);
-            if($s===false)
-                $this->Error('Error while reading stream');
-            $n -= strlen($s);
-            $res .= $s;
+            let buffer =Buffer.alloc ? Buffer.alloc(n) : new Buffer(n);
+            let read = fs.readSync(f, buffer, 0, n);
+          
+            if(!read){
+                this.Error('Error while reading stream');
+            }
+            
+            n -= read;
+            if(lConver){
+                res += buffer.toString(Encode);
+            }else{
+                res = buffer
+            }
+            
         }
-        if($n>0)
-            $this->Error('Unexpected end of stream');
-        return $res;
-        */
+
+        if(n>0){
+            this.Error('Unexpected end of stream');
+        }
+            
+        return res;
+        
     }
 
-    _readint($f) {
-        /*
+    _readint(f) {
+        
         // Read a 4-byte integer from stream
-        $a = unpack('Ni',$this->_readstream($f,4));
-        return $a['i'];
-        */
+        const a = this._readstream(f,4,false);
+        return a.readInt32BE()
+    
     }
 
     _parsegif($file) {   /*

@@ -22,7 +22,7 @@
     "node-fpdf",
     "fpdf-node",
     "fpdf",
-    "JavaScript",
+    "JavaScript pdf",
     "JavaScript-fpdf"
   ],
   "author": "Gamaliel Mendez",
@@ -32,7 +32,6 @@
   },
   "homepage": "https://github.com/gamalielmendez/fpdf_js#readme",
   "dependencies": {
-    "png-js": "^1.0.0",
     "sprintf-js": "^1.1.2"
   }
 }
