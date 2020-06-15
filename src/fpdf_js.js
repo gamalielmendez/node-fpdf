@@ -170,27 +170,27 @@ module.exports = class FPDF {
 
     SetTitle(title, isUTF8 = false) {
         // Title of document
-        this.metadata['Title'] = isUTF8 ? title : utf8_encode(title);
+        this.metadata['Title'] = title//isUTF8 ? title : utf8_encode(title);
     }
 
     SetAuthor(author, isUTF8 = false) {
         // Author of document
-        this.metadata['Author'] = isUTF8 ? author : utf8_encode(author);
+        this.metadata['Author'] = author//isUTF8 ? author : utf8_encode(author);
     }
 
     SetSubject(subject, isUTF8 = false) {
         // Subject of document
-        this.metadata['Subject'] = isUTF8 ? subject : utf8_encode(subject);
+        this.metadata['Subject'] =subject //isUTF8 ? subject : utf8_encode(subject);
     }
 
     SetKeywords(keywords, isUTF8 = false) {
         // Keywords of document
-        this.metadata['Keywords'] = isUTF8 ? keywords : utf8_encode(keywords);
+        this.metadata['Keywords'] =keywords //isUTF8 ? keywords : utf8_encode(keywords);
     }
 
     SetCreator(creator, isUTF8 = false) {
         // Creator of document
-        this.metadata['Creator'] = isUTF8 ? creator : utf8_encode(creator);
+        this.metadata['Creator'] =creator //isUTF8 ? creator : utf8_encode(creator);
     }
 
     AliasNbPages(alias = '{nb}') {
@@ -1043,34 +1043,9 @@ module.exports = class FPDF {
     *                              Protected methods                               *
     *******************************************************************************/
 
-    _dochecks() {
-        // Check mbstring overloading
-        /*
-        if(ini_get('mbstring.func_overload') & 2)
-            $this->Error('mbstring overloading must be disabled');
-        */
-    }
+    _dochecks() {}
 
-    _checkoutput() {
-        /*
-        if(PHP_SAPI!='cli')
-        {
-            if(headers_sent($file,$line))
-                $this->Error("Some data has already been output, can't send PDF file (output started at $file:$line)");
-        }
-        if(ob_get_length())
-        {
-            // The output buffer is not empty
-            if(preg_match('/^(\xEF\xBB\xBF)?\s*$/',ob_get_contents()))
-            {
-                // It contains only a UTF-8 BOM and/or whitespace, let's clean it
-                ob_clean();
-            }
-            else
-                $this->Error("Some data has already been output, can't send PDF file");
-        }
-        */
-    }
+    _checkoutput(){}
 
     _getpagesize(size) {
         if (is_string(size)) {
@@ -1147,9 +1122,7 @@ module.exports = class FPDF {
 
     }
 
-    _endpage() {
-        this.state = 1;
-    }
+    _endpage() { this.state = 1; }
 
     _loadfont(font) {
         // Load a font definition file from the font directory
@@ -1179,6 +1152,7 @@ module.exports = class FPDF {
         // Test if string is ASCII
         let nb = strlen(s);
         for (let i = 0; i < nb; i++) {
+            
             if (ord(s.charAt(i)) > 127) {
                 return false;
             }
@@ -1201,20 +1175,7 @@ module.exports = class FPDF {
         return res
     }
 
-    _httpencode(param, value, isUTF8) {
-        // Encode HTTP header field parameter
-        if (this._isascii(value))
-            return param + '="' + value + '"';
-
-        if (!$isUTF8)
-            value = utf8_encode($value);
-
-        if (strpos(_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false)
-            return param + '="' + rawurlencode($value) + '"';
-        else
-            return param + "*=UTF-8''" + rawurlencode($value);
-
-    }
+    _httpencode(param, value, isUTF8) {}
 
     _UTF8toUTF16(s) {
         // Convert UTF-8 to UTF-16BE with BOM
@@ -1337,7 +1298,7 @@ module.exports = class FPDF {
             colspace = 'DeviceGray';
         }else if(ct===2 || ct==6){
             colspace = 'DeviceRGB';
-        }else if($ct===3){
+        }else if(ct===3){
             colspace = 'Indexed';
         }else{
             this.Error('Unknown color type: '+file); 
@@ -1364,7 +1325,6 @@ module.exports = class FPDF {
         do {
             
             n = this._readint(f);   
-            console.log(n)
             let type = this._readstream(f,4,true);
             if(type==='PLTE')
             {
@@ -1426,7 +1386,7 @@ module.exports = class FPDF {
                     color += data[pos];
                     alpha += data[pos];
                     
-                    let line = substr(data.toString('binary'),pos+1,len);
+                    let line = substr(data,pos+1,len);
                     color += str_replace(/(.)./s,'$1',line) //line.replace(/(.)./s,'$1');
                     alpha += str_replace(/(.)./s,'$1',line)  //line.replace(/.(.)/s,'$1');
                 }
@@ -1440,10 +1400,7 @@ module.exports = class FPDF {
                     color += data[pos]
                     alpha += data[pos]
                     
-                    let line = substr(data.toString('binary'),pos+1,len);
-
-                    
-                    //console.log(line!==str_replace(/(.{3})./s,'$1',line))
+                    let line = substr(data,pos+1,len);
 
                     color += str_replace(/(.{3})./s,'$1',line) //line.replace(,'$1');
                     alpha += str_replace(/(.{3})./s,'$1',line) //line.replace(/.{3}(.)/s,'$1');
