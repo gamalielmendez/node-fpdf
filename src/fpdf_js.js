@@ -693,7 +693,7 @@ module.exports = class FPDF {
         let l = 0;
         let ns = 0;
         let nl = 1;
-
+        let ls
         while (i < nb) {
             // Get next character
             let c = s.charAt(i);

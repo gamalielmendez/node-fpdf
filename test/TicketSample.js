@@ -1,9 +1,10 @@
 const FPDF = require('../index')
 const { strtoupper, substr } = require('../src/PHP_CoreFunctions')
+const ptp = require( "pdf-to-printer");
 
 let textypos = 5;
-
-const pdf = new FPDF('P','mm', [45, 350]);
+let cPdfName=`${__dirname}/ticket.pdf`
+const pdf = new FPDF('P','mm', [58, 210]);
 
 pdf.AddPage()
 pdf.SetFont('Times', 'B', 8) //Letra Arial, negrita (Bold), tam. 20
@@ -46,4 +47,7 @@ pdf.SetX(38)
 pdf.Cell(5,textypos,"$ "+total.toFixed(2),0,0,"R")
 pdf.SetX(2)
 pdf.Cell(5,textypos+6,'GRACIAS POR TU COMPRA ')
-pdf.Output('F',`${__dirname}/ticket.pdf`)
+pdf.Output('F',cPdfName)
+
+
+ptp.print(cPdfName).then(console.log).catch(console.error);
