@@ -1,50 +1,58 @@
-const zlib= require('zlib');
+const zlib = require('zlib');
+const fs = require('fs')
 
 const sprintf = require('sprintf-js').sprintf
 
-const substr_count= (S, search) => { return S.split(search).length - 1; }
+const substr_count = (S, search) => { return S.split(search).length - 1; }
 
-const strtolower= (str) => { return str.toLowerCase() }
+const strtolower = (str) => { return str.toLowerCase() }
 
-const strtoupper= (str) => { return str.toUpperCase() }
+const strtoupper = (str) => { return str.toUpperCase() }
 
-const str_replace= (searchvalue, newvalue, from) => { return from.replace(searchvalue, newvalue) }
+const str_replace = (searchvalue, newvalue, from) => { return from.replace(searchvalue, newvalue) }
 
-const strlen= (str) => { return str.length }
+const strlen = (str) => { return str.length }
 
-const is_string= (xValue) => { return (typeof xValue === 'string') }
+const is_string = (xValue) => { return (typeof xValue === 'string') }
 
-const isset= (xValue) => { return (typeof xValue !== 'undefined') }
+const isset = (xValue) => { return (typeof xValue !== 'undefined') }
 
-const strpos= (str, searchvalue) => { return str.indexOf(searchvalue) }
+const strpos = (str, searchvalue) => { return str.indexOf(searchvalue) }
 
-const substr= (str, start, length) => { return str.substr(start, length) }
-
-const method_exists= (obj, method) => { 
-
-    if(method in obj){
-        return typeof obj[method]==='function'
-    }else{
-        return false 
+const substr = (str, start, length) => {
+    if (str) {
+        return str.substr(start, length)
+    } else {
+        return ''
     }
-     
+
 }
 
-const chr= (charCode) =>{ return String.fromCharCode(charCode) }
+const method_exists = (obj, method) => {
 
-const is_array= (obj) => { return Array.isArray(obj)} 
+    if (method in obj) {
+        return typeof obj[method] === 'function'
+    } else {
+        return false
+    }
 
-const in_array= (key, obj) => { 
+}
 
-    if(Array.isArray(obj)){
+const chr = (charCode) => { return String.fromCharCode(charCode) }
+
+const is_array = (obj) => { return Array.isArray(obj) }
+
+const in_array = (key, obj) => {
+
+    if (Array.isArray(obj)) {
         return obj.includes(key)
-    }else{
-        return (key in obj) 
+    } else {
+        return (key in obj)
     }
-    
+
 }
 
-const function_exists= (cModule) => {
+const function_exists = (cModule) => {
 
     try {
         const test = require(cModule)
@@ -55,7 +63,7 @@ const function_exists= (cModule) => {
 
 }
 
-const count= (obj) => {
+const count = (obj) => {
 
     if (Array.isArray(obj)) {
         return obj.length
@@ -67,7 +75,7 @@ const count= (obj) => {
 
 }
 
-const ord= (string) => {
+const ord = (string) => {
     //  discuss at: https://locutus.io/php/ord/
     // original by: Kevin van Zonneveld (https://kvz.io)
     // bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
@@ -107,15 +115,107 @@ const ord= (string) => {
     return code
 }
 
-const gzcompress= (data)=>{
-    const chunk =(!Buffer.isBuffer(data))?Buffer.from(data,'binary'):data
+const gzcompress = (data) => {
+    const chunk = (!Buffer.isBuffer(data)) ? Buffer.from(data, 'binary') : data
     return zlib.deflateSync(chunk)
 }
 
-const gzuncompress = (data) =>{
-    const chunk =(!Buffer.isBuffer(data))?Buffer.from(data,'binary'):data
-    const Z1=zlib.inflateSync(chunk)  
+const gzuncompress = (data) => {
+    const chunk = (!Buffer.isBuffer(data)) ? Buffer.from(data, 'binary') : data
+    const Z1 = zlib.inflateSync(chunk)
     return Z1.toString('binary')//'ascii'
+}
+
+const file = (cFile) => {
+
+    try {
+
+        const data = fs.readFileSync(cFile);
+        if (!data) {
+            return;
+        } else {
+            return data
+        }
+
+    } catch (error) {
+        return null
+    }
+
+}
+
+const rtrim = (str, chars = ' ') => {
+    // creditos de la funcion
+    //https://github.com/sergejmueller/rtrim
+    // Convert to string
+    str = str.toString();
+
+    // Empty string?
+    if (!str) {
+        return '';
+    }
+
+    // Remove whitespace if chars arg is empty
+    if (!chars) {
+        return str.replace(/\s+$/, '');
+    }
+
+    // Convert to string
+    chars = chars.toString();
+
+    // Set vars
+    var letters = str.split(''),
+        i = letters.length - 1;
+
+    // Loop letters
+    for (i; i >= 0; i--) {
+        if (chars.indexOf(letters[i]) === -1) {
+            return str.substring(0, i + 1);
+        }
+    }
+
+    return str;
+
+};
+
+const explode = (search, from) => {
+
+    return from.split(search)
+
+}
+
+const hexdec = (hexString) => {
+    //  discuss at: https://locutus.io/php/hexdec/
+    // original by: Philippe Baumann
+    //   example 1: hexdec('that')
+    //   returns 1: 10
+    //   example 2: hexdec('a0')
+    //   returns 2: 160
+
+    hexString = (hexString + '').replace(/[^a-f0-9]/gi, '')
+    return parseInt(hexString, 16)
+}
+
+const round = (number) => {
+    return Math.round(number);
+}
+
+const fopen= (filename) =>{
+    try {
+        return fs.openSync(filename) 
+    } catch (error) {
+        return null  
+    }
+    
+}
+
+const fclose = (f) =>{
+    return fs.closeSync(f)
+}
+
+const fread = (f,n) =>{
+    let buffer =Buffer.alloc ? Buffer.alloc(n) : new Buffer(n);
+    let read = fs.readSync(f, buffer, 0, n);
+    return buffer
 }
 
 module.exports = {
@@ -137,5 +237,13 @@ module.exports = {
     sprintf,
     is_array,
     gzcompress,
-    gzuncompress
+    gzuncompress,
+    file,
+    rtrim,
+    explode,
+    hexdec,
+    round,
+    fopen,
+    fclose,
+    fread
 }

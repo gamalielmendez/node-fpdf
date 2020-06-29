@@ -1,5 +1,5 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
-    chr, function_exists, count, ord, sprintf, is_array, gzcompress,gzuncompress } = require('./PHP_CoreFunctions')
+    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 
@@ -15,7 +15,7 @@ module.exports = class FPDF {
         this.state = 0;
         this.page = 0;
         this.n = 2;
-        this.buffer = new Readable({read() {} });
+        this.buffer = new Readable({ read() { } });
         this.pages = {};
         this.PageInfo = new Array();
         this.fonts = {};
@@ -38,13 +38,13 @@ module.exports = class FPDF {
         this.WithAlpha = false;
         this.ws = 0;
         this.AutoPageBreak = true
-        this.offset =0
+        this.offset = 0
         //fixes php to javascript
         this.offsets = {}
         this.PageLinks = {}
         this.metadata = {}
         //end fixes
-        
+
         // Font path
         this.fontpath = `${__dirname}/fonts/`
         // Core fonts
@@ -180,17 +180,17 @@ module.exports = class FPDF {
 
     SetSubject(subject, isUTF8 = false) {
         // Subject of document
-        this.metadata['Subject'] =subject //isUTF8 ? subject : utf8_encode(subject);
+        this.metadata['Subject'] = subject //isUTF8 ? subject : utf8_encode(subject);
     }
 
     SetKeywords(keywords, isUTF8 = false) {
         // Keywords of document
-        this.metadata['Keywords'] =keywords //isUTF8 ? keywords : utf8_encode(keywords);
+        this.metadata['Keywords'] = keywords //isUTF8 ? keywords : utf8_encode(keywords);
     }
 
     SetCreator(creator, isUTF8 = false) {
         // Creator of document
-        this.metadata['Creator'] =creator //isUTF8 ? creator : utf8_encode(creator);
+        this.metadata['Creator'] = creator //isUTF8 ? creator : utf8_encode(creator);
     }
 
     AliasNbPages(alias = '{nb}') {
@@ -920,8 +920,8 @@ module.exports = class FPDF {
 
             info = this[mtd](file);
             info['i'] = count(this.images) + 1;
-         
-            this.images[file] = {...info};
+
+            this.images[file] = { ...info };
 
         } else {
             info = this.images[file];
@@ -934,11 +934,11 @@ module.exports = class FPDF {
             h = -96;
         }
 
-        if (w < 0){ w = -info['w'] * 72 / w / this.k; }   
-        if (h < 0){ h = -info['h'] * 72 / h / this.k;}  
-        if (w === 0){ w = h * info['w'] / info['h']; }   
-        if (h === 0){ h = w * info['h'] / info['w'];}
-            
+        if (w < 0) { w = -info['w'] * 72 / w / this.k; }
+        if (h < 0) { h = -info['h'] * 72 / h / this.k; }
+        if (w === 0) { w = h * info['w'] / info['h']; }
+        if (h === 0) { h = w * info['h'] / info['w']; }
+
         // Flowing mode
         if (y === null) {
             if (this.y + h > this.PageBreakTrigger && !this.InHeader && !this.InFooter && this.AcceptPageBreak()) {
@@ -1029,7 +1029,54 @@ module.exports = class FPDF {
                 this.buffer.pipe(fs.createWriteStream(name))
                 break;
             case 's':
-                return this.buffer;
+                const sPdf = this.buffer.read();
+                return sPdf.toString('binary')
+                break;
+            case 'p':
+
+                if (function_exists('pdf-to-printer')) {
+
+                    if (function_exists('tmp')) {
+
+                        //se genera el archivo temporal
+                        try {
+
+
+                            const tmp = require('tmp');
+                            const ptp = require("pdf-to-printer")
+                            const tmpobj = tmp.fileSync({ postfix: '.pdf' });
+
+                            //se ecribe el erchivo pdf en el erchivo temporal
+                            this.buffer.pipe(fs.createWriteStream(tmpobj.name))
+
+                            //se detecta el el objeto name es un objeto
+                            let options = {}
+                            if (typeof name !== 'string') { options = { ...name } }
+                            //se imprime el archivo
+                            ptp.print(tmpobj.name, options)
+                                .then(tmpobj.removeCallback)
+                                .catch((err) => {
+                                    console.log(err)
+                                    tmpobj.removeCallback();
+                                });
+
+                            return true
+                        } catch (error) {
+                            return false
+                        }
+
+                    } else {
+                        console.log('please run yarn add tmp or npm install tmp')
+                    }
+
+                } else {
+                    console.log('please run yarn add pdf-to-printer or npm install pdf-to-printer')
+                }
+                break
+
+            case 'base64':
+                const strbf = this.buffer.read();
+                return strbf.toString('base64')
                 break;
             default:
                 throw 'ERROR -- Unrecognized output type: "' + xdest + '", options are I (in browser), D (download through browser), F (write to file), or S (return as a string).'
@@ -1043,9 +1090,9 @@ module.exports = class FPDF {
     *                              Protected methods                               *
     *******************************************************************************/
 
-    _dochecks() {}
+    _dochecks() { }
 
-    _checkoutput(){}
+    _checkoutput() { }
 
     _getpagesize(size) {
         if (is_string(size)) {
@@ -1152,7 +1199,7 @@ module.exports = class FPDF {
         // Test if string is ASCII
         let nb = strlen(s);
         for (let i = 0; i < nb; i++) {
-            
+
             if (ord(s.charAt(i)) > 127) {
                 return false;
             }
@@ -1161,21 +1208,21 @@ module.exports = class FPDF {
 
         return true;
     }
-    
+
     _TextToAscii(s) {
         // Test if string is ASCII
         let nb = strlen(s);
-        let res=''
+        let res = ''
         for (let i = 0; i < nb; i++) {
-            
-            let c=s.codePointAt(i)
-            res+=String.fromCodePoint(c)
-    
+
+            let c = s.codePointAt(i)
+            res += String.fromCodePoint(c)
+
         }
         return res
     }
 
-    _httpencode(param, value, isUTF8) {}
+    _httpencode(param, value, isUTF8) { }
 
     _UTF8toUTF16(s) {
         // Convert UTF-8 to UTF-16BE with BOM
@@ -1263,159 +1310,155 @@ module.exports = class FPDF {
         return { 'w': a.width, 'h': a.height, 'cs': colspace, 'bpc': bpc, 'f': 'DCTDecode', 'data': data }
     }
 
-    _parsepng(file) {   
-           
-        const f =fs.openSync(file)
-        const info= this._parsepngstream(f,file)
+    _parsepng(file) {
+
+        const f = fs.openSync(file)
+        const info = this._parsepngstream(f, file)
         fs.closeSync(f)
         return info
- 
+
     }
 
     _parsepngstream(f, file) {
 
         // Check signature
-        if(this._readstream(f,8)!==`${chr(137)}PNG${chr(13)}${chr(10)}${chr(26)}${chr(10)}`){
-            this.Error('Not a PNG file: '+file);
-        }
-            
-        // Read header chunk
-        this._readstream(f,4)
-        if(this._readstream(f,4)!=='IHDR'){
-            this.Error('Incorrect PNG file: '+file);
-        }
-        
-        let w = this._readint(f);
-        let h = this._readint(f);
-        let bpc = ord(this._readstream(f,1,true));
-        if(bpc>8){
-            this.Error('16-bit depth not supported: '+file);
+        if (this._readstream(f, 8) !== `${chr(137)}PNG${chr(13)}${chr(10)}${chr(26)}${chr(10)}`) {
+            this.Error('Not a PNG file: ' + file);
         }
 
-        let ct = ord(this._readstream(f,1,true));
+        // Read header chunk
+        this._readstream(f, 4)
+        if (this._readstream(f, 4) !== 'IHDR') {
+            this.Error('Incorrect PNG file: ' + file);
+        }
+
+        let w = this._readint(f);
+        let h = this._readint(f);
+        let bpc = ord(this._readstream(f, 1, true));
+        if (bpc > 8) {
+            this.Error('16-bit depth not supported: ' + file);
+        }
+
+        let ct = ord(this._readstream(f, 1, true));
         let colspace
-        if(ct===0 || ct===4){
+        if (ct === 0 || ct === 4) {
             colspace = 'DeviceGray';
-        }else if(ct===2 || ct==6){
+        } else if (ct === 2 || ct == 6) {
             colspace = 'DeviceRGB';
-        }else if(ct===3){
+        } else if (ct === 3) {
             colspace = 'Indexed';
-        }else{
-            this.Error('Unknown color type: '+file); 
+        } else {
+            this.Error('Unknown color type: ' + file);
         }
-        
-        if(ord(this._readstream(f,1))!==0){
-            this.Error('Unknown compression method: '+file);
+
+        if (ord(this._readstream(f, 1)) !== 0) {
+            this.Error('Unknown compression method: ' + file);
         }
-        if(ord(this._readstream(f,1))!==0){
-            this.Error('Unknown filter method: '+file);
+        if (ord(this._readstream(f, 1)) !== 0) {
+            this.Error('Unknown filter method: ' + file);
         }
-        if(ord(this._readstream(f,1))!==0){
-            this.Error('Interlacing not supported: '+file);
+        if (ord(this._readstream(f, 1)) !== 0) {
+            this.Error('Interlacing not supported: ' + file);
         }
-        
-        this._readstream(f,4);
-        let dp = `/Predictor 15 /Colors ${(colspace=='DeviceRGB' ? 3 : 1)} /BitsPerComponent ${bpc} /Columns ${w}`;
-    
+
+        this._readstream(f, 4);
+        let dp = `/Predictor 15 /Colors ${(colspace == 'DeviceRGB' ? 3 : 1)} /BitsPerComponent ${bpc} /Columns ${w}`;
+
         // Scan chunks looking for palette, transparency and image data
         let pal = '';
         let trns = '';
         let data = '';
         let n
         do {
-            
-            n = this._readint(f);   
-            let type = this._readstream(f,4,true);
-            if(type==='PLTE')
-            {
-                // Read palette
-                pal = this._readstream(f,n);
-                this._readstream(f,4);
 
-            }else if(type==='tRNS')
-            {
+            n = this._readint(f);
+            let type = this._readstream(f, 4, true);
+            if (type === 'PLTE') {
+                // Read palette
+                pal = this._readstream(f, n);
+                this._readstream(f, 4);
+
+            } else if (type === 'tRNS') {
                 // Read transparency info
-                let t = this._readstream(f,n);
-                if(ct==0){
-                    trns = [ord(substr(t,1,1))]
-                }else if($ct==2){
-                    trns = [ord(substr(t,1,1)), ord(substr(t,3,1)), ord(substr(t,5,1))];
-                }else{
-                    let pos = strpos(t,chr(0));
-                    if(pos!==-1){
+                let t = this._readstream(f, n);
+                if (ct == 0) {
+                    trns = [ord(substr(t, 1, 1))]
+                } else if ($ct == 2) {
+                    trns = [ord(substr(t, 1, 1)), ord(substr(t, 3, 1)), ord(substr(t, 5, 1))];
+                } else {
+                    let pos = strpos(t, chr(0));
+                    if (pos !== -1) {
                         $trns = [pos];
                     }
-                        
+
                 }
-                this._readstream(f,4);
-            }else if(type==='IDAT'){
+                this._readstream(f, 4);
+            } else if (type === 'IDAT') {
                 // Read image data block
-                data += this._readstream(f,n,true);
-                this._readstream(f,4);
-            }else if(type=='IEND'){
+                data += this._readstream(f, n, true);
+                this._readstream(f, 4);
+            } else if (type == 'IEND') {
                 break;
-            }else{
-                this._readstream(f,n+4);
+            } else {
+                this._readstream(f, n + 4);
             }
-            
+
         } while (n);
 
-        if(colspace=='Indexed' && !pal){
-            this.Error('Missing palette in '+file);
+        if (colspace == 'Indexed' && !pal) {
+            this.Error('Missing palette in ' + file);
         }
-        
-        let info = {'w':w, 'h':h, 'cs':colspace, 'bpc':bpc, 'f':'FlateDecode', 'dp':dp, 'pal':pal, 'trns':trns};
 
-        if(ct>=4){
+        let info = { 'w': w, 'h': h, 'cs': colspace, 'bpc': bpc, 'f': 'FlateDecode', 'dp': dp, 'pal': pal, 'trns': trns };
+
+        if (ct >= 4) {
 
             // Extract alpha channel
-            if(!function_exists('zlib')){
-                this.Error('Zlib not available, can\'t handle alpha channel: '+file);
+            if (!function_exists('zlib')) {
+                this.Error('Zlib not available, can\'t handle alpha channel: ' + file);
             }
-                
+
             data = gzuncompress(data);
             let color = '';
             let alpha = '';
-            let hola='hola'
-            if(ct===4){
+            let hola = 'hola'
+            if (ct === 4) {
                 // Gray image
-                let len = 2*w;
-                for(let i=0;i<h;i++)
-                {
-                    let pos = (1+len)*i;
+                let len = 2 * w;
+                for (let i = 0; i < h; i++) {
+                    let pos = (1 + len) * i;
                     color += data[pos];
                     alpha += data[pos];
-                    
-                    let line = substr(data,pos+1,len);
-                    color += str_replace(/(.)./s,'$1',line) //line.replace(/(.)./s,'$1');
-                    alpha += str_replace(/(.)./s,'$1',line)  //line.replace(/.(.)/s,'$1');
+
+                    let line = substr(data, pos + 1, len);
+                    color += str_replace(/(.)./s, '$1', line) //line.replace(/(.)./s,'$1');
+                    alpha += str_replace(/(.)./s, '$1', line)  //line.replace(/.(.)/s,'$1');
                 }
 
-            }else{
+            } else {
                 // RGB image
-                let len = 4*w;
-                for(let i=0;i<h;i++)
-                {
-                    let pos = (1+len)*i;
+                let len = 4 * w;
+                for (let i = 0; i < h; i++) {
+                    let pos = (1 + len) * i;
                     color += data[pos]
                     alpha += data[pos]
-                    
-                    let line = substr(data,pos+1,len);
 
-                    color += str_replace(/(.{3})./s,'$1',line) //line.replace(,'$1');
-                    alpha += str_replace(/(.{3})./s,'$1',line) //line.replace(/.{3}(.)/s,'$1');
-                    
+                    let line = substr(data, pos + 1, len);
+
+                    color += str_replace(/(.{3})./s, '$1', line) //line.replace(,'$1');
+                    alpha += str_replace(/(.{3})./s, '$1', line) //line.replace(/.{3}(.)/s,'$1');
+
                 }
             }
 
-            data=undefined
+            data = undefined
             data = gzcompress(color);
             info['smask'] = gzcompress(alpha);
             this.WithAlpha = true;
-            if(this.PDFVersion<'1.4'){
+            if (this.PDFVersion < '1.4') {
                 this.PDFVersion = '1.4';
             }
-                
+
         }
 
         info['data'] = data;
@@ -1423,43 +1466,42 @@ module.exports = class FPDF {
 
     }
 
-    _readstream(f,n,lConver=true,Encode='binary') {
-        
-        // Read n bytes from stream
-        let res =(lConver)?'':null;
+    _readstream(f, n, lConver = true, Encode = 'binary') {
 
-        while(n>0)
-        {
-            let buffer =Buffer.alloc ? Buffer.alloc(n) : new Buffer(n);
+        // Read n bytes from stream
+        let res = (lConver) ? '' : null;
+
+        while (n > 0) {
+            let buffer = Buffer.alloc ? Buffer.alloc(n) : new Buffer(n);
             let read = fs.readSync(f, buffer, 0, n);
-          
-            if(!read){
+
+            if (!read) {
                 this.Error('Error while reading stream');
             }
-            
+
             n -= read;
-            if(lConver){
+            if (lConver) {
                 res += buffer.toString(Encode);
-            }else{
+            } else {
                 res = buffer
             }
-            
+
         }
 
-        if(n>0){
+        if (n > 0) {
             this.Error('Unexpected end of stream');
         }
-            
+
         return res;
-        
+
     }
 
     _readint(f) {
-        
+
         // Read a 4-byte integer from stream
-        const a = this._readstream(f,4,false);
+        const a = this._readstream(f, 4, false);
         return a.readInt32BE()
-    
+
     }
 
     _parsegif($file) {   /*
@@ -1501,14 +1543,14 @@ module.exports = class FPDF {
 
     }
 
-    _put(s) { 
-        
+    _put(s) {
+
         if (!Buffer.isBuffer(s)) {
             s = Buffer.from(s + '\n', 'binary')
         }
 
         this.buffer.push(s)// += `${s}\n`; 
-        this.offset+=s.length
+        this.offset += s.length
     }
 
     _getoffset() { return this.offset }
@@ -1536,9 +1578,9 @@ module.exports = class FPDF {
             entries = '/Filter /FlateDecode ';
             Result = gzcompress(data);
         } else {
-        
+
             entries = '';
-            Result=data
+            Result = data
         }
 
         entries += `/Length ${Result.length}`;
@@ -1854,7 +1896,7 @@ module.exports = class FPDF {
     _putimages() {
 
         for (const key in this.images) {
-            
+
             const image = this.images[key];
             this._putimage(image);
             delete this.images[key].data
@@ -1866,70 +1908,70 @@ module.exports = class FPDF {
     _putimage(info) {
 
         this._newobj();
-        
+
         info['n'] = this.n;
-        
+
         this._put('<</Type /XObject');
         this._put('/Subtype /Image');
         this._put(`/Width ${info['w']}`);
         this._put(`/Height ${info['h']}`);
 
-        if(info['cs']==='Indexed'){
-            this._put(`/ColorSpace [/Indexed /DeviceRGB ${strlen(info['pal'])/3-1} ${(this.n+1)} 0 R]`);
-        }else{
+        if (info['cs'] === 'Indexed') {
+            this._put(`/ColorSpace [/Indexed /DeviceRGB ${strlen(info['pal']) / 3 - 1} ${(this.n + 1)} 0 R]`);
+        } else {
             this._put(`/ColorSpace /${info['cs']}`);
-            if(info['cs']==='DeviceCMYK'){
+            if (info['cs'] === 'DeviceCMYK') {
                 this._put('/Decode [1 0 1 0 1 0 1 0]');
-            }    
+            }
         }
 
         this._put(`/BitsPerComponent ${info['bpc']}`);
-        if(isset(info['f'])){
+        if (isset(info['f'])) {
             this._put(`/Filter /${info['f']}`);
         }
-            
-        if(isset(info['dp'])){
+
+        if (isset(info['dp'])) {
             this._put(`/DecodeParms <<${info['dp']}>>`);
         }
 
-        if(isset(info['trns']) && is_array(info['trns'])){
-            
+        if (isset(info['trns']) && is_array(info['trns'])) {
+
             let trns = '';
-            for(let i=0;i<count(info['trns']);i++){
-                trns +=` ${info['trns'][i]} ${info['trns'][$i]} `;
+            for (let i = 0; i < count(info['trns']); i++) {
+                trns += ` ${info['trns'][i]} ${info['trns'][$i]} `;
             }
-                
+
             this._put(`/Mask [${trns}]`);
         }
 
-        if(isset(info['smask'])){
-            this._put(`/SMask ${(this.n+1)} 0 R`);
+        if (isset(info['smask'])) {
+            this._put(`/SMask ${(this.n + 1)} 0 R`);
         }
-            
+
         this._put(`/Length ${strlen(info['data'])}>>`);
         this._putstream(info['data']);
         this._put('endobj');
 
         // Soft mask
-        if(isset(info['smask'])){
+        if (isset(info['smask'])) {
             let dp = `/Predictor 15 /Colors 1 /BitsPerComponent 8 /Columns ${info['w']}`;
-            let smask = {'w':info['w'], 'h':info['h'], 'cs':'DeviceGray', 'bpc':8, 'f':info['f'], 'dp':dp, 'data':info['smask']};
+            let smask = { 'w': info['w'], 'h': info['h'], 'cs': 'DeviceGray', 'bpc': 8, 'f': info['f'], 'dp': dp, 'data': info['smask'] };
             this._putimage(smask);
         }
 
         // Palette
-        if(info['cs']==='Indexed'){
+        if (info['cs'] === 'Indexed') {
             this._putstreamobject(info['pal']);
         }
-             
+
     }
 
     _putxobjectdict() {
-        
+
         for (const key in this.images) {
             const image = this.images[key];
-            this._put(`/I${image['i']} ${image['n']} 0 R`);   
-            
+            this._put(`/I${image['i']} ${image['n']} 0 R`);
+
         }
 
     }

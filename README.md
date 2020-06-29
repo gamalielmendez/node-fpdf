@@ -40,12 +40,12 @@ pdf.Output('F',`test.pdf`);
 - [x] *GetX - obtiene la posición actual de x*
 - [x] *GetY - obtiene la posición actual de y*
 - [x] *Header - cabecera de página*
-- [x] *Image - imprime una imagen*
+- [x] *Image - imprime una imagen (solo acepta jpeg,jpg,png)*
 - [x] *Line - dibuja un línea*
 - [x] *Link - pone una referencia*
 - [x] *Ln - salto de línea*
 - [x] *MultiCell - imprime texto con saltos de línea*
-- [x] *Output - guarda o envía el documento*
+- [x] *Output - guarda o envía el documento ('f'->escribe un archivo en disco,'s'-> retorna un string,'p'-> imprime el archivo,'base64'-> retorna un string en base 64)*
 - [x] *PageNo - número de página*
 - [x] *Rect - dibuja un rectangulo*
 - [x] *SetAuthor - establece el autor del documento*
