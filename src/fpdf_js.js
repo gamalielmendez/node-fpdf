@@ -119,7 +119,7 @@ module.exports = class FPDF {
     SetLeftMargin(margin) {
         // Set left margin
         this.lMargin = margin;
-        if (this.page > 0 && $this.x < margin) {
+        if (this.page > 0 && this.x < margin) {
             this.x = margin;
         }
 

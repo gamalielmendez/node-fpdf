@@ -11,15 +11,22 @@ const strtoupper = (str) => { return str.toUpperCase() }
 
 const str_replace = (searchvalue, newvalue, from) => { return from.replace(searchvalue, newvalue) }
 
-const strlen = (str) => { return str.length }
+const strlen = (str) => { 
+    str=`${str}`
+    return str.length 
+}
 
 const is_string = (xValue) => { return (typeof xValue === 'string') }
 
 const isset = (xValue) => { return (typeof xValue !== 'undefined') }
 
-const strpos = (str, searchvalue) => { return str.indexOf(searchvalue) }
+const strpos = (str, searchvalue) => { 
+    str=`${str}`
+    return str.indexOf(searchvalue) 
+}
 
 const substr = (str, start, length) => {
+    str=`${str}`
     if (str) {
         return str.substr(start, length)
     } else {
@@ -218,6 +225,15 @@ const fread = (f,n) =>{
     return buffer
 }
 
+const fseek = (f,n,position='SEEK_CUR') =>{
+    
+    let buffer =Buffer.alloc ? Buffer.alloc(n) : new Buffer(n);
+    const pos=(position==='SEEK_CUR')?null:(position==='SEEK_SET')?0:0
+    let read = fs.readSync(f, buffer, 0, n,pos);
+
+    return read
+}
+
 module.exports = {
     substr_count,
     strtolower,
@@ -245,5 +261,6 @@ module.exports = {
     round,
     fopen,
     fclose,
-    fread
+    fread,
+    fseek
 }

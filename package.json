@@ -10,7 +10,9 @@
     "test1": "node ./test/ImageReport.js",
     "test2": "node ./test/ReportSample.js",
     "test3": "node ./test/TicketSample.js",
-    "test4": "node ./test/testClassTtfParser.js"
+    "test4": "node ./test/testClassTtfParser.js",
+    "test5": "node ./test/testmulticell.js",
+    "test6": "node ./test/testttfparse.js"
   },
   "repository": {
     "type": "git",
