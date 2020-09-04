@@ -708,7 +708,7 @@ module.exports = class FPDF {
                 this.Cell(w, h, substr(s, j, i - j), b, 2, align, fill);
                 i++;
                 sep = -1;
-                j = $i;
+                j = i;
                 l = 0;
                 ns = 0;
                 nl++;
@@ -915,7 +915,7 @@ module.exports = class FPDF {
 
             let mtd = '_parse' + type;
             if (!method_exists(this, mtd)) {
-                this.Error('Unsupported image type: ' + $type);
+                this.Error('Unsupported image type: ' + type);
             }
 
             info = this[mtd](file);
@@ -1242,8 +1242,8 @@ module.exports = class FPDF {
             } else if (c1 >= 192) {
                 // 2-byte character
                 let c2 = ord(s.charAt(i++));
-                $res += chr((c1 & 0x1C) >> 2);
-                $res += chr(((c1 & 0x03) << 6) + (c2 & 0x3F));
+                res += chr((c1 & 0x1C) >> 2);
+                res += chr(((c1 & 0x03) << 6) + (c2 & 0x3F));
 
             } else {
                 // Single-byte character
@@ -1299,7 +1299,7 @@ module.exports = class FPDF {
         let colspace
         if (!isset(a.channels) || a.channels == 3) {
             colspace = 'DeviceRGB';
-        } else if ($a['channels'] == 4) {
+        } else if (a.channels == 4) {
             colspace = 'DeviceCMYK';
         } else {
             colspace = 'DeviceGray';
@@ -1381,14 +1381,14 @@ module.exports = class FPDF {
             } else if (type === 'tRNS') {
                 // Read transparency info
                 let t = this._readstream(f, n);
-                if (ct == 0) {
+                if (ct === 0) {
                     trns = [ord(substr(t, 1, 1))]
-                } else if ($ct == 2) {
+                } else if (ct == 2) {
                     trns = [ord(substr(t, 1, 1)), ord(substr(t, 3, 1)), ord(substr(t, 5, 1))];
                 } else {
                     let pos = strpos(t, chr(0));
                     if (pos !== -1) {
-                        $trns = [pos];
+                        trns = [pos];
                     }
 
                 }
@@ -1536,7 +1536,7 @@ module.exports = class FPDF {
             this.pages[this.page] += `${s}\n`;
         else if (this.state == 1)
             this._put(s);
-        else if ($this.state == 0)
+        else if (this.state == 0)
             this.Error('No page has been added yet');
         else if (this.state == 3)
             this.Error('The document is closed');
@@ -1616,7 +1616,7 @@ module.exports = class FPDF {
                 annots += `<</Type /Annot /Subtype /Link /Rect [${rect}] /Border [0 0 0] `;
 
                 if (is_string(pl[4])) {
-                    annots += `/A <</S /URI /URI ${this._textstring($pl[4])}>>>>`;
+                    annots += `/A <</S /URI /URI ${this._textstring(pl[4])}>>>>`;
                 } else {
                     let l = this.links[pl[4]];
                     let h
@@ -1938,7 +1938,7 @@ module.exports = class FPDF {
 
             let trns = '';
             for (let i = 0; i < count(info['trns']); i++) {
-                trns += ` ${info['trns'][i]} ${info['trns'][$i]} `;
+                trns += ` ${info['trns'][i]} ${info['trns'][i]} `;
             }
 
             this._put(`/Mask [${trns}]`);
