@@ -1,6 +1,8 @@
 # node-fpdf
 ### port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original Puedes encontar  proyecto y documentacion original [aqui](http://www.fpdf.org/)
-
+### **Apoyar el proyecto**
+[![alt text](https://www.paypalobjects.com/es_XC/MX/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJT3RJKJ44EWQ&source=url
+)
 # Para Instalar
 ```javascript 
 npm i node-fpdf 
