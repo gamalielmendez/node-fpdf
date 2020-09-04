@@ -1,6 +1,6 @@
 {
   "name": "node-fpdf",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "port de la libreria de FPDF de PHP",
   "main": "index.js",
   "directories": {
