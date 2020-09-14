@@ -234,6 +234,10 @@ const fseek = (f,n,position='SEEK_CUR') =>{
     return read
 }
 
+const file_get_contents = ()=>{
+
+}
+
 module.exports = {
     substr_count,
     strtolower,
@@ -262,5 +266,6 @@ module.exports = {
     fopen,
     fclose,
     fread,
-    fseek
+    fseek,
+    file_get_contents
 }

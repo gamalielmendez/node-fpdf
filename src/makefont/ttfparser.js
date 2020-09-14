@@ -201,21 +201,24 @@ class TTFParser {
 			const platformID = this.ReadUShort();
 			const encodingID = this.ReadUShort();
             const offset     = this.ReadULong();
-			if(platformID==3 && encodingID==1)
-				offset31 = offset;
+			if(platformID===3 && encodingID===1){
+                offset31 = offset;
+            }
+				
 		}
         
         if(offset31===0){
             this.Error('No Unicode encoding found');
         }
 			
-        /*
-		$startCount = array();
-		$endCount = array();
-		$idDelta = array();
-		$idRangeOffset = array();
-		$this->chars = array();
-		fseek($this->f, $this->tables['cmap']['offset']+$offset31, SEEK_SET);
+        
+		let startCount = {};
+		let endCount = {};
+		let idDelta = {};
+		let idRangeOffset = {};
+        this.chars = [];
+        
+		/*fseek($this->f, $this->tables['cmap']['offset']+$offset31, SEEK_SET);
 		$format = $this->ReadUShort();
 		if($format!=4)
 			$this->Error('Unexpected subtable format: '.$format);

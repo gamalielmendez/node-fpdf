@@ -1,5 +1,5 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
-    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress } = require('./PHP_CoreFunctions')
+    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress,file } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 
@@ -7,7 +7,7 @@ const { Readable } = require('stream');
 
 module.exports = class FPDF {
 
-    constructor(orientation = 'P', unit = 'mm', size = 'A4') {
+    constructor(orientation = 'P', unit = 'mm', size = 'A4',PDFA=false) {
 
         // Initialization of properties
         this.FPDF_VERSION = '1.82'
@@ -39,11 +39,18 @@ module.exports = class FPDF {
         this.ws = 0;
         this.AutoPageBreak = true
         this.offset = 0
+        
         //fixes php to javascript
         this.offsets = {}
         this.PageLinks = {}
         this.metadata = {}
         //end fixes
+
+        //variables de soporte para PDFA
+        this.PDFA =PDFA
+        this.n_colorprofile=0;
+        this.n_metadata=0;
+        this.CreationDate='';
 
         // Font path
         this.fontpath = `${__dirname}/fonts/`
@@ -1343,7 +1350,7 @@ module.exports = class FPDF {
         let colspace
         if (ct === 0 || ct === 4) {
             colspace = 'DeviceGray';
-        } else if (ct === 2 || ct == 6) {
+        } else if (ct === 2 || ct === 6) {
             colspace = 'DeviceRGB';
         } else if (ct === 3) {
             colspace = 'Indexed';
@@ -1421,7 +1428,7 @@ module.exports = class FPDF {
             data = gzuncompress(data);
             let color = '';
             let alpha = '';
-            let hola = 'hola'
+
             if (ct === 4) {
                 // Gray image
                 let len = 2 * w;
@@ -1992,6 +1999,7 @@ module.exports = class FPDF {
     }
 
     _putresources() {
+        
         this._putfonts();
         this._putimages();
         // Resource dictionary
@@ -2000,9 +2008,118 @@ module.exports = class FPDF {
         this._putresourcedict();
         this._put('>>');
         this._put('endobj');
+
+        if(this.PDFA){
+            this._putcolorprofile();
+            this._putmetadata();
+        }
     }
 
+    _putcolorprofile()
+    {
+        let icc = file(__dirname+'/sRGB2014.icc');
+        if(!icc)
+            this.Error('Could not load the ICC profile');
+
+        this._newobj();
+        this.n_colorprofile = this.n;
+        this._put('<<');
+        this._put('/Length '.strlen(icc));
+        this._put('/N 3');
+        this._put('>>');
+        this._putstream($icc);
+        this._put('endobj');
+    }
+
+    _getxmpdescription(alias, ns, body)
+    {
+        return sprintf("\t<rdf:Description rdf:about=\"\" xmlns:%s=\"%s\">\n%s\t</rdf:Description>\n", alias, ns, body);
+    }
+
+    _getxmpsimple(tag, value)
+    {
+        value = escapeHtml(value);
+        return sprintf("\t\t<%s>%s</%s>\n", tag, value, tag);
+    }
+
+     _getxmpseq(tag, value)
+    {
+        value = escapeHtml(value);
+        return sprintf("\t\t<%s>\n\t\t\t<rdf:Seq>\n\t\t\t\t<rdf:li>%s</rdf:li>\n\t\t\t</rdf:Seq>\n\t\t</%s>\n", tag, value, tag);
+    }
+
+    _getxmpalt(tag, value)
+    {
+        value = escapeHtml(value);
+        return sprintf("\t\t<%s>\n\t\t\t<rdf:Alt>\n\t\t\t\t<rdf:li xml:lang=\"x-default\">%s</rdf:li>\n\t\t\t</rdf:Alt>\n\t\t</%s>\n", tag, value, tag);
+    }
+    
+    escapeHtml(text) {
+        
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+          
+        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
+
+    _putmetadata()
+    {
+        let pdf = this._getxmpsimple('pdf:Producer', this.metadata['Producer']);
+        if(isset(this.metadata['Keywords'])){
+            pdf += this._getxmpsimple('pdf:Keywords', this.metadata['Keywords']);
+        }
+            
+        const date = new Date();
+        const YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
+        let xmp = this._getxmpsimple('xmp:CreateDate', YYYYMMDDHHMMSS);
+        if(isset(this.metadata['Creator'])){
+            xmp += this._getxmpsimple('xmp:CreatorTool', this.metadata['Creator']);
+        }   
+
+        let dc = '';
+        if(isset(this.metadata['Author']))
+            dc += this._getxmpseq('dc:creator', this.metadata['Author']);
+
+        if(isset(this.metadata['Title']))
+            dc += this._getxmpalt('dc:title', this.metadata['Title']);
+
+        if(isset(this.metadata['Subject']))
+            dc += this._getxmpalt('dc:description', this.metadata['Subject']);
+
+        let pdfaid = this._getxmpsimple('pdfaid:part', '1');
+        pdfaid += this._getxmpsimple('pdfaid:conformance', 'B');
+
+        let s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>'+"\n";
+        s += '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'+"\n";
+        s += this._getxmpdescription('pdf', 'http://ns.adobe.com/pdf/1.3/', pdf);
+        s += this._getxmpdescription('xmp', 'http://ns.adobe.com/xap/1.0/', xmp);
+        if(dc!=='')
+            s += this._getxmpdescription('dc', 'http://purl.org/dc/elements/1.1/', dc);
+
+        s += this._getxmpdescription('pdfaid', 'http://www.aiim.org/pdfa/ns/id/', pdfaid);
+        s += '</rdf:RDF>'+"\n";
+        s += '<?xpacket end="r"?>';
+
+        this._newobj();
+        this.n_metadata = this.n;
+        this._put('<<');
+        this._put('/Type /Metadata');
+        this._put('/Subtype /XML');
+        this._put('/Length '.strlen(s));
+        this._put('>>');
+        this._putstream($s);
+        this._put('endobj');
+
+    }
+
+
     _putinfo() {
+  
         const date = new Date();
         const YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
         this.metadata['Producer'] = 'FPDF ' + this.PDFVersion
@@ -2012,7 +2129,7 @@ module.exports = class FPDF {
             const value = this.metadata[key]
             this._put(`/${key} ${this._textstring(value)}`);
         }
-
+    
     }
 
     _putcatalog() {
@@ -2035,19 +2152,79 @@ module.exports = class FPDF {
             this._put('/PageLayout /OneColumn');
         else if (this.LayoutMode === 'two')
             this._put('/PageLayout /TwoColumnLeft');
+
+        if(this.PDFA){
+
+            let oi = '<</Type /OutputIntent /S /GTS_PDFA1 '
+            oi += '/OutputConditionIdentifier (sRGB2014.icc) /Info (sRGB2014.icc) /RegistryName (http://www.color.org) '
+            oi += `/DestOutputProfile ${this.n_colorprofile} 0 R>>`;
+
+            this._put(`/OutputIntents [${oi}]`);
+            this._put(`/Metadata ${this.n_metadata} 0 R`);
+
+        }
+
     }
 
     _putheader() {
-        this._put('%PDF-' + this.PDFVersion);
+        
+        if(!this.PDFA){
+            this._put('%PDF-' + this.PDFVersion);
+        }else{
+            this._put('%PDF-1.4');
+            this._put('%\xE2\xE3\xCF\xD3');
+        }
+        
     }
 
     _puttrailer() {
+        
         this._put(`/Size ${this.n + 1}`);
         this._put(`/Root ${this.n} 0 R`);
         this._put(`/Info ${this.n - 1} 0 R`);
+
+        if(this.PDFA){
+            const id = this.uniqid();
+            this._put(`/ID [(${id})(${id})]`);
+        }
+    }
+
+    uniqid(){
+        
+        const n = Math.floor(Math.random() * 11);
+        const k = Math.floor(Math.random() * 1000000);
+        const m = String.fromCharCode(n) + k;
+        return m
+
+    }
+
+    time() {
+        var timestamp = Math.floor(new Date().getTime() / 1000)
+        return timestamp;
     }
 
     _enddoc() {
+        
+        if(this.PDFA){
+            
+            for (const key in this.fonts) {
+    
+                const font = this.fonts[key];
+                if(font['type']==='Core'){
+                    this.Error('All fonts must be embedded in PDF/A');
+                }
+                
+            }
+
+            if(this.WithAlpha){
+                this.Error('Alpha channel is not allowed in PDF/A-1');
+            }
+            
+            this.CreationDate = this.time();
+            this.metadata['Producer'] = `FPDF ${this.FPDF_VERSION}`; 
+
+        }
+
         this._putheader();
         this._putpages();
         this._putresources();
@@ -2082,5 +2259,6 @@ module.exports = class FPDF {
         this._put(offset);
         this._put('%%EOF');
         this.state = 3;
+
     }
 }
