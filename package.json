@@ -1,6 +1,6 @@
 {
   "name": "node-fpdf",
-  "version": "1.0.21",
+  "version": "1.0.22",
   "description": "port de la libreria de FPDF de PHP",
   "main": "index.js",
   "directories": {
@@ -12,7 +12,8 @@
     "test3": "node ./test/TicketSample.js",
     "test4": "node ./test/testClassTtfParser.js",
     "test5": "node ./test/testmulticell.js",
-    "test6": "node ./test/testttfparse.js"
+    "test6": "node ./test/testttfparse.js",
+    "test7": "node ./test/code128.js"
   },
   "repository": {
     "type": "git",

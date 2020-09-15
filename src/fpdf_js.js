@@ -2,7 +2,7 @@ const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, is
     chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress,file } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
-
+const  Code128= require('./extends/code128')
 const { Readable } = require('stream');
 
 module.exports = class FPDF {
@@ -2024,10 +2024,10 @@ module.exports = class FPDF {
         this._newobj();
         this.n_colorprofile = this.n;
         this._put('<<');
-        this._put('/Length '.strlen(icc));
+        this._put('/Length '+strlen(icc));
         this._put('/N 3');
         this._put('>>');
-        this._putstream($icc);
+        this._putstream(icc);
         this._put('endobj');
     }
 
@@ -2038,19 +2038,19 @@ module.exports = class FPDF {
 
     _getxmpsimple(tag, value)
     {
-        value = escapeHtml(value);
+        value = this.escapeHtml(value);
         return sprintf("\t\t<%s>%s</%s>\n", tag, value, tag);
     }
 
      _getxmpseq(tag, value)
     {
-        value = escapeHtml(value);
+        value = this.escapeHtml(value);
         return sprintf("\t\t<%s>\n\t\t\t<rdf:Seq>\n\t\t\t\t<rdf:li>%s</rdf:li>\n\t\t\t</rdf:Seq>\n\t\t</%s>\n", tag, value, tag);
     }
 
     _getxmpalt(tag, value)
     {
-        value = escapeHtml(value);
+        value = this.escapeHtml(value);
         return sprintf("\t\t<%s>\n\t\t\t<rdf:Alt>\n\t\t\t\t<rdf:li xml:lang=\"x-default\">%s</rdf:li>\n\t\t\t</rdf:Alt>\n\t\t</%s>\n", tag, value, tag);
     }
     
@@ -2110,9 +2110,9 @@ module.exports = class FPDF {
         this._put('<<');
         this._put('/Type /Metadata');
         this._put('/Subtype /XML');
-        this._put('/Length '.strlen(s));
+        this._put('/Length '+strlen(s));
         this._put('>>');
-        this._putstream($s);
+        this._putstream(s);
         this._put('endobj');
 
     }
@@ -2211,7 +2211,7 @@ module.exports = class FPDF {
     
                 const font = this.fonts[key];
                 if(font['type']==='Core'){
-                    this.Error('All fonts must be embedded in PDF/A');
+                   this.Error('All fonts must be embedded in PDF/A');
                 }
                 
             }
@@ -2261,4 +2261,14 @@ module.exports = class FPDF {
         this.state = 3;
 
     }
+
+    Code128(x, y, code, w, h){
+        
+        //se genera el codigo de barra 128
+        const CellPorceH=(this.FontSize *1.181102)
+        Code128(this,x, y, code, w, h)
+        this.SetXY(x,(y+h)+2)
+        this.Cell(w,CellPorceH,code,undefined,undefined,'C')
+    }
+
 }
