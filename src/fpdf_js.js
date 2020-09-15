@@ -3,6 +3,7 @@ const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, is
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 const  Code128= require('./extends/code128')
+const  Code39= require('./extends/code39')
 const { Readable } = require('stream');
 
 module.exports = class FPDF {
@@ -2271,4 +2272,7 @@ module.exports = class FPDF {
         this.Cell(w,CellPorceH,code,undefined,undefined,'C')
     }
 
+    Code39(x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true){
+        return Code39(this,x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true)
+    }
 }

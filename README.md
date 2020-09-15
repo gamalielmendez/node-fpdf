@@ -74,4 +74,5 @@ pdf.Output('F',`test.pdf`);
 - [x] *Text - imprime una cadena*
 - [x] *Write - imprime el siguiente texto*
 - [x] *Code128 - imprime un codigo de barras en formato CODE128(A,B,C,ABC)*
+- [x] *Code39 - imprime un codigo de barras en formato CODE39*
 
