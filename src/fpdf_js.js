@@ -40,7 +40,8 @@ module.exports = class FPDF {
         this.ws = 0;
         this.AutoPageBreak = true
         this.offset = 0
-        
+        this.angle=0
+
         //fixes php to javascript
         this.offsets = {}
         this.PageLinks = {}
@@ -1177,7 +1178,14 @@ module.exports = class FPDF {
 
     }
 
-    _endpage() { this.state = 1; }
+    _endpage() { 
+        
+        if(this.angle!==0){
+            this.angle=0;
+            this._out('Q');
+        }
+        this.state = 1; 
+    }
 
     _loadfont(font) {
         // Load a font definition file from the font directory
@@ -2274,5 +2282,55 @@ module.exports = class FPDF {
 
     Code39(x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true){
         return Code39(this,x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true)
+    }
+
+    Rotate(angle,x=-1,y=-1){    
+        if(x==-1)
+            x=this.x;
+        if(y==-1)
+            y=this.y;
+
+        if(this.angle!==0)
+            this._out('Q');
+
+        this.angle=angle;
+        if(angle!==0){
+            angle*=Math.PI/180;
+            let c=Math.cos(angle);
+            let s=Math.sin(angle);
+            let cx=x*this.k;
+            let cy=(this.h-y)*this.k;
+            this._out(sprintf('q %.5f %.5f %.5f %.5f %.2f %.2f cm 1 0 0 1 %.2f %.2f cm',c,s,-s,c,cx,cy,-cx,-cy));
+        }
+    }
+
+    RotatedText(x,y,txt,angle){
+        //Text rotated around its origin
+        this.Rotate(angle,x,y);
+        this.Text(x,y,txt);
+        this.Rotate(0);
+    }
+
+    RotatedImage(file,x,y,w,h,angle){
+        //Image rotated around its upper-left corner
+        this.Rotate(angle,x,y);
+        this.Image(file,x,y,w,h);
+        this.Rotate(0);
+    }
+    
+    SetWatermark(Watermark){
+
+        //se respalda la fuente actual
+        const family =this.FontFamily;
+        const style =this.FontStyle;
+        const size= this.FontSizePt;
+
+        //Put the watermark
+        this.SetFont('Arial','B',50);
+        this.SetTextColor(255,192,203);
+        this.RotatedText(35,190,Watermark,45);
+
+        //se restaura la fuente
+        this.SetFont(family,style,size);
     }
 }
