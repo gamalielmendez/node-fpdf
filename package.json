@@ -15,7 +15,8 @@
     "test6": "node ./test/testttfparse.js",
     "test7": "node ./test/code128.js",
     "test8": "node ./test/code39.js",
-    "test9": "node ./test/rotatetext.js"
+    "test9": "node ./test/rotatetext.js",
+    "test10": "node ./test/char.js"
   },
   "repository": {
     "type": "git",

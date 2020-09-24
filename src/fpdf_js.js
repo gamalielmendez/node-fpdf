@@ -4,6 +4,7 @@ const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 const  Code128= require('./extends/code128')
 const  Code39= require('./extends/code39')
+const LineGraph = require('./extends/LineGraph')
 const { Readable } = require('stream');
 
 module.exports = class FPDF {
@@ -317,7 +318,7 @@ module.exports = class FPDF {
         } else {
             this.DrawColor = sprintf('%.3f %.3f %.3f rg', r / 255, g / 255, b / 255);
         }
-
+        
         if (this.page > 0) {
             this._out(this.DrawColor);
         }
@@ -2332,5 +2333,9 @@ module.exports = class FPDF {
 
         //se restaura la fuente
         this.SetFont(family,style,size);
+    }
+
+    LineGraph(w, h, data, options='', colors=null, maxVal=0, nbDiv=4){
+        LineGraph(this,w, h, data, options, colors, maxVal, nbDiv)
     }
 }
