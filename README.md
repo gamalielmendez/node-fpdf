@@ -77,4 +77,5 @@ pdf.Output('F',`test.pdf`);
 - [x] *Code39 - imprime un codigo de barras en formato CODE39*
 - [x] *RotatedText - rota un texto en grados de 0 a 360*
 - [x] *SetWatermark - coloca una marca de agua en la pagina*
+- [x] *ShadowCell - Imprime un texto con sombra*
 

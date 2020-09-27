@@ -5,6 +5,7 @@ const LoadJpeg = require('./ImageManager/Jpeg');
 const  Code128= require('./extends/code128')
 const  Code39= require('./extends/code39')
 const LineGraph = require('./extends/LineGraph')
+const ShadowCell = require('./extends/ShadowCell')
 const { Readable } = require('stream');
 
 module.exports = class FPDF {
@@ -2337,5 +2338,9 @@ module.exports = class FPDF {
 
     LineGraph(w, h, data, options='', colors=null, maxVal=0, nbDiv=4){
         LineGraph(this,w, h, data, options, colors, maxVal, nbDiv)
+    }
+
+    ShadowCell(w, h=0, txt='', border=0, ln=0, align='', fill=false, link='', color='G', distance=0.5){
+        ShadowCell(this,w, h, txt, border, ln, align, fill, link, color, distance)
     }
 }
