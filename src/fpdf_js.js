@@ -43,6 +43,8 @@ module.exports = class FPDF {
         this.AutoPageBreak = true
         this.offset = 0
         this.angle=0
+        this.outlines = [];
+        this.outlineRoot;
 
         //fixes php to javascript
         this.offsets = {}
@@ -2030,6 +2032,75 @@ module.exports = class FPDF {
         
     }
 
+
+    _putbookmarks(){
+
+        let nb = count(this.outlines);
+        if(nb==0){
+            return;
+        }
+            
+        let lru = [];
+        let level = 0;
+
+        this.outlines.forEach( (o,i)=> {
+            
+            if(o['l']>0){
+                
+                let parent = lru[o['l']-1];
+                // Set parent and last pointers
+                this.outlines[i]['parent'] = parent;
+                this.outlines[parent]['last'] = i;
+                if(o['l']>level)
+                {
+                    // Level increasing: set first pointer
+                    this.outlines[parent]['first'] = i;
+                }
+
+            }else{
+                this.outlines[i]['parent'] = nb;
+            } 
+
+            if(o['l']<=level && i>0)
+            {
+                // Set prev and next pointers
+                let prev = lru[o['l']];
+                this.outlines[prev]['next'] = i;
+                this.outlines[i]['prev'] = prev;
+            }
+
+            lru[o['l']] = i;
+            level = o['l'];
+
+        });
+
+        // Outline items
+        let n = this.n+1;
+        this.outlines.forEach( (o,i)=> {
+            this._newobj();
+            this._put(`<</Title ${this._textstring(o['t'])}`);
+            this._put(`/Parent ${(n+o['parent'])} 0 R`);
+
+            if(isset(o['prev'])){ this._put(`/Prev ${(n+o['prev'])} 0 R`); }
+            if(isset(o['next'])){ this._put(`/Next ${(n+o['next'])} 0 R`); }
+            if(isset(o['first'])){ this._put(`/First ${(n+o['first'])} 0 R`); }
+            if(isset(o['last'])){ this._put(`/Last ${(n+o['last'])} 0 R`); }
+            
+            this._put(sprintf('/Dest [%d 0 R /XYZ 0 %.2f null]',this.PageInfo[o['p']]['n'],o['y']));
+            this._put('/Count 0>>');
+            this._put('endobj');
+        });
+
+        // Outline root
+        this._newobj();
+        this.outlineRoot = this.n;
+        this._put(`<</Type /Outlines /First ${n} 0 R`);
+        this._put(`/Last ${(n+lru[0])} 0 R>>`);
+        this._put('endobj');
+
+    }
+
+
     _putresources() {
         
         this._putfonts();
@@ -2044,6 +2115,8 @@ module.exports = class FPDF {
         if(this.javascript){
             this._putjavascript()
         }
+
+        this._putbookmarks();
 
         if(this.PDFA){
             this._putcolorprofile();
@@ -2169,6 +2242,7 @@ module.exports = class FPDF {
     }
 
     _putcatalog() {
+
         let n = this.PageInfo[1]['n'];
         this._put('/Type /Catalog');
         this._put('/Pages 1 0 R');
@@ -2191,6 +2265,11 @@ module.exports = class FPDF {
 
         if (this.javascript) {
             this._put(`/Names <</JavaScript ${this.n_js} 0 R>>`);
+        }
+        
+        if(count(this.outlines)>0){
+            this._put(`/Outlines ${this.outlineRoot} 0 R`);
+            this._put('/PageMode /UseOutlines');
         }
 
         if(this.PDFA){
@@ -2376,5 +2455,15 @@ module.exports = class FPDF {
     IncludeJS(script, isUTF8=false) {
         this.javascript=script;
     }
-    
+
+    Bookmark(txt, isUTF8=false, level=0, y=0){
+   
+        if(y==-1){
+            y = this.GetY();
+        }
+
+        this.outlines.push({'t':txt, 'l':level, 'y':(this.h-y)*this.k, 'p':this.PageNo()})
+
+    }    
+
 }

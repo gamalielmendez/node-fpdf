@@ -81,3 +81,4 @@ pdf.Output('F',`test.pdf`);
 - [x] *SetWatermark - coloca una marca de agua en la pagina*
 - [x] *ShadowCell - Imprime un texto con sombra*
 - [x] *IncludeJS - Añade un script en el lenguaje JavaScript*
+- [x] *Bookmark -  Añade Bookmark*
