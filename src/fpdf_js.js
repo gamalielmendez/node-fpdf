@@ -55,6 +55,9 @@ module.exports = class FPDF {
         this.n_colorprofile=0;
         this.n_metadata=0;
         this.CreationDate='';
+        //variables para sopote para javascript
+        this.javascript
+        this.n_js
 
         // Font path
         this.fontpath = `${__dirname}/fonts/`
@@ -2009,6 +2012,24 @@ module.exports = class FPDF {
         this._put('>>');
     }
 
+    
+    _putjavascript() {
+
+        this._newobj();
+        this.n_js=this.n;
+        this._put('<<');
+        this._put(`/Names [(EmbeddedJS) ${this.n+1} 0 R]`);
+        this._put('>>');
+        this._put('endobj');
+        this._newobj();
+        this._put('<<');
+        this._put('/S /JavaScript');
+        this._put(`/JS ${this._textstring(this.javascript)}`);
+        this._put('>>');
+        this._put('endobj');
+        
+    }
+
     _putresources() {
         
         this._putfonts();
@@ -2019,6 +2040,10 @@ module.exports = class FPDF {
         this._putresourcedict();
         this._put('>>');
         this._put('endobj');
+
+        if(this.javascript){
+            this._putjavascript()
+        }
 
         if(this.PDFA){
             this._putcolorprofile();
@@ -2163,6 +2188,10 @@ module.exports = class FPDF {
             this._put('/PageLayout /OneColumn');
         else if (this.LayoutMode === 'two')
             this._put('/PageLayout /TwoColumnLeft');
+
+        if (this.javascript) {
+            this._put(`/Names <</JavaScript ${this.n_js} 0 R>>`);
+        }
 
         if(this.PDFA){
 
@@ -2343,4 +2372,9 @@ module.exports = class FPDF {
     ShadowCell(w, h=0, txt='', border=0, ln=0, align='', fill=false, link='', color='G', distance=0.5){
         ShadowCell(this,w, h, txt, border, ln, align, fill, link, color, distance)
     }
+
+    IncludeJS(script, isUTF8=false) {
+        this.javascript=script;
+    }
+    
 }

@@ -26,7 +26,7 @@ pdf.Output('F',`test.pdf`);
 - [x] times
 - [x] zapfdingbats
 
-# **Por Hacer en Clase**
+# **Funciones Disponibles**
 - [x] *AcceptPageBreak - acepta o no un salto de página automático*
 - [x] *AddFont - añade una nueva fuente*
 - [x] *AddLink - crea una referencia interna*
@@ -73,9 +73,11 @@ pdf.Output('F',`test.pdf`);
 - [x] *SetY - establece la posición actual de y*
 - [x] *Text - imprime una cadena*
 - [x] *Write - imprime el siguiente texto*
+
+# **Extensiones Adicionales**
 - [x] *Code128 - imprime un codigo de barras en formato CODE128(A,B,C,ABC)*
 - [x] *Code39 - imprime un codigo de barras en formato CODE39*
 - [x] *RotatedText - rota un texto en grados de 0 a 360*
 - [x] *SetWatermark - coloca una marca de agua en la pagina*
 - [x] *ShadowCell - Imprime un texto con sombra*
-
+- [x] *IncludeJS - Añade un script en el lenguaje JavaScript*
