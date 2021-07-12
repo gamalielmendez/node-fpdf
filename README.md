@@ -82,3 +82,5 @@ pdf.Output('F',`test.pdf`);
 - [x] *ShadowCell - Imprime un texto con sombra*
 - [x] *IncludeJS - Añade un script en el lenguaje JavaScript*
 - [x] *Bookmark -  Añade Bookmark*
+- [x] *CreateIndexFromBookmark -  Crea Un indice del documento cuando tiene Bookmark*
+

@@ -1,5 +1,5 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
-    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress,file } = require('./PHP_CoreFunctions')
+    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress,file,str_repeat } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 const  Code128= require('./extends/code128')
@@ -513,9 +513,9 @@ module.exports = class FPDF {
 
     AddLink() {
         // Create a new internal link
-        const n = count(this.links) + 1;
-        this.links[n] = [0, 0];
-        return n;
+        //const n = count(this.links) + 1;
+        this.links.push([0, 0])// = [0, 0];
+        return (this.links.length-1);
     }
 
     SetLink(link, y = 0, page = -1) {
@@ -532,8 +532,13 @@ module.exports = class FPDF {
     }
 
     Link(x, y, w, h, link) {
+
         // Put a link on the page
-        this.PageLinks[this.page] = [x * this.k, this.hPt - y * this.k, w * this.k, h * this.k, link];
+        if(typeof this.PageLinks[`${this.page}`] === "undefined"){
+            this.PageLinks[`${this.page}`]=[]      
+        }
+
+        this.PageLinks[`${this.page}`].push([x * this.k, this.hPt - y * this.k, w * this.k, h * this.k, link]);
     }
 
     Text(x, y, txt) {
@@ -1632,9 +1637,8 @@ module.exports = class FPDF {
             // Links
             let annots = '/Annots [';
 
-            for (const key in this.PageLinks[n]) {
-
-                const pl = this.PageLinks[n][key]
+            this.PageLinks[`${n}`].forEach((pl,i) => {
+                
                 let rect = sprintf('%.2f %.2f %.2f %.2f', pl[0], pl[1], pl[0] + pl[2], pl[1] - pl[3]);
                 annots += `<</Type /Annot /Subtype /Link /Rect [${rect}] /Border [0 0 0] `;
 
@@ -1650,7 +1654,7 @@ module.exports = class FPDF {
 
                     annots += sprintf('/Dest [%d 0 R /XYZ 0 %.2f null]>>', this.PageInfo[l[0]]['n'], h - l[1] * this.k);
                 }
-            }
+            });
 
             this._put(`${annots}]`);
         }
@@ -2456,14 +2460,75 @@ module.exports = class FPDF {
         this.javascript=script;
     }
 
-    Bookmark(txt, isUTF8=false, level=0, y=0){
+    Bookmark(txt, isUTF8=false, level=0, y=-1){
    
-        if(y==-1){
-            y = this.GetY();
+        if(y===-1){
+            y= this.GetY();
         }
 
         this.outlines.push({'t':txt, 'l':level, 'y':(this.h-y)*this.k, 'p':this.PageNo()})
 
-    }    
+    }   
+
+    CreateIndexFromBookmark(cTitle="Index",CreateLinks=false,CustomHeaderCallBack){
+
+        if(this.outlines.length<=0){
+            return
+        }
+
+        this.AddPage();
+        this.Bookmark(cTitle,false);
+
+        if(!CustomHeaderCallBack){
+            //Index title
+            this.SetFontSize(20);
+            this.Cell(0,5,cTitle,0,1,'C');
+            this.SetFontSize(15);
+            this.Ln(10);
+        }else if(typeof CustomHeaderCallBack ==="function"){
+            CustomHeaderCallBack()
+        }
+
+        let size=this.outlines.length-1
+        let PageCellSize=this.GetStringWidth(`p. ${this.outlines[size-1]['p']}`)+2;
+        for (let i=0;i<size;i++){
+            
+            //Offset
+            let level=this.outlines[i]['l'];
+            if(level>0){
+                this.Cell(level*8);
+            }
+    
+            //Caption
+            let str=this.outlines[i]['t'];
+            let strsize=this.GetStringWidth(str);
+            let avail_size=this.w-this.lMargin-this.rMargin-PageCellSize-(level*8)-4;
+            while (strsize>=avail_size){
+                str=substr(str,0,-1);
+                strsize=this.GetStringWidth(str);
+            }
+
+            this.Cell(strsize+2,this.FontSize+2,str,0,0,'',false);
+    
+            //Filling dots
+            let w=this.w-this.lMargin-this.rMargin-PageCellSize-(level*8)-(strsize+2);
+            let nb=w/this.GetStringWidth('.');
+            let dots= str_repeat('.',nb); //'.'.repeat(nb) 
+            this.Cell(w,this.FontSize+2,dots,0,0,'R',false);
+    
+            //Page number
+            this.Cell(PageCellSize,this.FontSize+2,`p. ${this.outlines[i]['p']}`,0,1,'R',false);
+            
+            if(CreateLinks){
+                let ln=  this.AddLink()
+                this.SetLink(ln,0,this.outlines[i]['p'])
+                this.Link(this.GetX(),this.GetY(),(strsize+2+w+PageCellSize),(this.FontSize+2),ln)
+            }
+
+        }
+
+        
+
+    }
 
 }

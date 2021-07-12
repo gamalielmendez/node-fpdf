@@ -556,6 +556,12 @@ const max = () => {
     return retVal
 }
 
+const str_repeat = (str,nAt)=>{
+
+  return str.repeat(nAt)
+
+}
+
 module.exports = {
     substr_count,
     strtolower,
@@ -591,5 +597,6 @@ module.exports = {
     strstr,
     array_rand,
     ceil,
-    max
+    max,
+    str_repeat
 }
