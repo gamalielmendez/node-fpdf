@@ -4,6 +4,7 @@ const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 const  Code128= require('./extends/code128')
 const  Code39= require('./extends/code39')
+const i25= require('./extends/code_i25')
 const LineGraph = require('./extends/LineGraph')
 const ShadowCell = require('./extends/ShadowCell')
 const { Readable } = require('stream');
@@ -2398,6 +2399,10 @@ module.exports = class FPDF {
         return Code39(this,x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true)
     }
 
+    i25(xpos, ypos, code, basewidth=1, height=10){
+        return i25(this,xpos, ypos, code, basewidth=1, height=10)
+    }
+
     Rotate(angle,x=-1,y=-1){    
         if(x==-1)
             x=this.x;
@@ -2526,8 +2531,6 @@ module.exports = class FPDF {
             }
 
         }
-
-        
 
     }
 
