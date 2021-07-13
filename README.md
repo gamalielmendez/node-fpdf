@@ -1,8 +1,11 @@
 # node-fpdf
 ### port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original Puedes encontar  proyecto y documentacion original [aqui](http://www.fpdf.org/)
-### **Apoyar el proyecto**
+### **Apoyar el proyecto con paypal**
 [![alt text](https://www.paypalobjects.com/es_XC/MX/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJT3RJKJ44EWQ&source=url
 )
+### **Apoyar con brave tokens**
+### ir a repositorio de [GitHub](https://github.com/gamalielmendez/node-fpdf) con el navegador brave
+
 # Para Instalar
 ```javascript 
 npm i node-fpdf 
@@ -78,10 +81,11 @@ pdf.Output('F',`test.pdf`);
 - [x] *Code128 - imprime un codigo de barras en formato CODE128(A,B,C,ABC)*
 - [x] *Code39 - imprime un codigo de barras en formato CODE39*
 - [x] *i25- imprime un codigo de barras en formato i25*
+- [x] *EAN13- imprime un codigo de barras en formato EAN13*
+- [x] *UPC_A- imprime un codigo de barras en formato UPC_A*
 - [x] *RotatedText - rota un texto en grados de 0 a 360*
 - [x] *SetWatermark - coloca una marca de agua en la pagina*
 - [x] *ShadowCell - Imprime un texto con sombra*
 - [x] *IncludeJS - Añade un script en el lenguaje JavaScript*
 - [x] *Bookmark -  Añade Bookmark*
 - [x] *CreateIndexFromBookmark -  Crea Un indice del documento cuando tiene Bookmark*
-

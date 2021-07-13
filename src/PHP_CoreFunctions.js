@@ -25,10 +25,12 @@ const strpos = (str, searchvalue) => {
     return str.indexOf(searchvalue) 
 }
 
-const substr = (str, start, length=null) => {
+const substr = (str, start, length=undefined) => {
     str=`${str}`
-    if (str) {
+    if (str&&start>=0) {
         return str.substr(start, length)
+    }else if(str&&start<0){
+      return str.substr(start,length) 
     } else {
         return ''
     }

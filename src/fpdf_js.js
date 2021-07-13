@@ -4,6 +4,7 @@ const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
 const  Code128= require('./extends/code128')
 const  Code39= require('./extends/code39')
+const  {EAN13,UPC_A}= require('./extends/codeEAN13')
 const i25= require('./extends/code_i25')
 const LineGraph = require('./extends/LineGraph')
 const ShadowCell = require('./extends/ShadowCell')
@@ -2534,4 +2535,12 @@ module.exports = class FPDF {
 
     }
 
+    EAN13(x, y, barcode, h=16, w=.35){
+        EAN13(this,x, y, barcode, h=16, w=.35)
+    }
+
+    UPC_A(x, y, barcode, h=16, w=.35){
+        UPC_A(this,x, y, barcode, h=16, w=.35)
+    }
+    
 }
