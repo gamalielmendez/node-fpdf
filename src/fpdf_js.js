@@ -1030,21 +1030,14 @@ module.exports = class FPDF {
         this.SetY(y, false);
     }
 
-    Output(dest = 'F', name = '', isUTF8 = false) {
+    Output(dest = 'F', name = 'doc.pdf', isUTF8 = false) {
         // Output PDF to some destination
         this.Close();
-        if (strlen(name) == 1 && strlen(dest) != 1) {
+        if (strlen(name) === 1 && strlen(dest) !== 1) {
             // Fix parameter order
             let tmp = dest;
             dest = name;
             name = tmp;
-        }
-
-        if (dest === '') {
-            dest = 'I';
-        }
-        if (name == '') {
-            name = 'doc.pdf';
         }
 
         switch (dest.toLowerCase()) {
@@ -2213,8 +2206,10 @@ module.exports = class FPDF {
         s += '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'+"\n";
         s += this._getxmpdescription('pdf', 'http://ns.adobe.com/pdf/1.3/', pdf);
         s += this._getxmpdescription('xmp', 'http://ns.adobe.com/xap/1.0/', xmp);
-        if(dc!=='')
+        
+        if(dc!==''){
             s += this._getxmpdescription('dc', 'http://purl.org/dc/elements/1.1/', dc);
+        }
 
         s += this._getxmpdescription('pdfaid', 'http://www.aiim.org/pdfa/ns/id/', pdfaid);
         s += '</rdf:RDF>'+"\n";
@@ -2253,27 +2248,38 @@ module.exports = class FPDF {
         this._put('/Type /Catalog');
         this._put('/Pages 1 0 R');
 
-        if (this.ZoomMode === 'fullpage')
-            this._put(`/OpenAction [${n} 0 R /Fit]`);
-        else if (this.ZoomMode === 'fullwidth')
-            this._put(`/OpenAction [${n} 0 R /FitH null]`);
-        else if (this.ZoomMode === 'real')
-            this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
-        else if (!is_string(this.ZoomMode))
-            this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f', this.ZoomMode / 100)}]`);
-
-        if (this.LayoutMode === 'single')
-            this._put('/PageLayout /SinglePage');
-        else if (this.LayoutMode === 'continuous')
-            this._put('/PageLayout /OneColumn');
-        else if (this.LayoutMode === 'two')
-            this._put('/PageLayout /TwoColumnLeft');
+        switch (this.ZoomMode) {
+            case "fullpage":
+                this._put(`/OpenAction [${n} 0 R /Fit]`);
+                break;
+            case "fullwidth":
+                this._put(`/OpenAction [${n} 0 R /FitH null]`);
+                break;
+            case "real":
+                this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
+                break;
+            default:
+                if(!is_string(this.ZoomMode)){ this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f', this.ZoomMode / 100)}]`); }
+                break;
+        }
+ 
+        switch (this.LayoutMode) {
+            case "single":
+                this._put('/PageLayout /SinglePage');
+                break;
+            case "continuous":
+                this._put('/PageLayout /OneColumn');
+                break;
+            case "two":
+                this._put('/PageLayout /TwoColumnLeft');
+                break;
+        }
 
         if (this.javascript) {
             this._put(`/Names <</JavaScript ${this.n_js} 0 R>>`);
         }
         
-        if(count(this.outlines)>0){
+        if(count(this.outlines.len)>0){
             this._put(`/Outlines ${this.outlineRoot} 0 R`);
             this._put('/PageMode /UseOutlines');
         }

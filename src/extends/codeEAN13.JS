@@ -108,7 +108,6 @@ function Barcode(parent,x, y, barcode, h, w, len)
     }
     //Print text uder barcode
     parent.SetFont('Arial','',12);
-    console.log(barcode)
     parent.Text(x,y+h+11/parent.k,substr(barcode,-len));
 }
 
