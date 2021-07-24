@@ -5,6 +5,7 @@ npm-debug.log
 yarn-error.log
 yarn.lock
 package-lock.json
+.DS_Store
 
 //se ignoran los pdfs
 *.pdf
