@@ -68,34 +68,52 @@ module.exports = class FPDF {
         // Core fonts
         this.CoreFonts = ['courier', 'helvetica', 'times', 'symbol', 'zapfdingbats']
         // Scale factor
-        if (unit === 'pt') {
-            this.k = 1;
-        } else if (unit === 'mm') {
-            this.k = 72 / 25.4;
-        } else if (unit === 'cm') {
-            this.k = 72 / 2.54;
-        } else if (unit === 'in') {
-            this.k = 72;
-        } else {
-            this.Error(`Incorrect unit: ${unit}`);
+        switch (strtolower(unit)) {
+            case 'pt':
+                this.k = 1;
+                break;
+            case 'mm':
+                this.k = 72 / 25.4;
+                break;
+            case 'cm':
+                this.k = 72 / 2.54;
+                break;
+            case 'in':
+                this.k = 72;
+                break;
+            default:
+                this.Error(`Incorrect unit: ${unit}`);
+                break;
         }
+
         // Page sizes
         this.StdPageSizes = { 'a3': [841.89, 1190.55], 'a4': [595.28, 841.89], 'a5': [420.94, 595.28], 'letter': [612, 792], 'legal': [612, 1008] };
         size = this._getpagesize(size);
         this.DefPageSize = size;
         this.CurPageSize = size;
+        
         // Page orientation
         orientation = strtolower(orientation);
-        if (orientation === 'p' || orientation === 'portrait') {
-            this.DefOrientation = 'P';
-            this.w = size[0];
-            this.h = size[1];
-        } else if (orientation === 'l' || orientation === 'landscape') {
-            this.DefOrientation = 'L';
-            this.w = size[1];
-            this.h = size[0];
-        } else {
-            this.Error(`Incorrect orientation: ${orientation}`);
+        switch (orientation) {
+            case 'p':
+            case 'portrait':
+
+                this.DefOrientation = 'P';
+                this.w = size[0];
+                this.h = size[1];
+                break;
+                
+            case 'l':
+            case 'landscape':
+
+                this.DefOrientation = 'L';
+                this.w = size[1];
+                this.h = size[0];
+
+                break;
+            default:
+                this.Error(`Incorrect orientation: ${orientation}`);
+                break;
         }
 
         this.CurOrientation = this.DefOrientation;
@@ -217,6 +235,7 @@ module.exports = class FPDF {
     }
 
     Close() {
+
         // Terminate document
         if (this.state === 3) {
             return;
@@ -390,14 +409,22 @@ module.exports = class FPDF {
     }
 
     Rect(x, y, w, h, style = '') {
+        
         let op
+        
         // Draw a rectangle
-        if (style === 'F')
-            op = 'f';
-        else if (style === 'FD' || style === 'DF')
-            op = 'B';
-        else
-            op = 'S';
+        switch (style) {
+            case 'F':
+                op = 'f';
+                break;
+            case 'FD':
+            case 'DF':
+                op = 'B';
+                break;  
+            default:
+                op = 'S';
+                break;
+        }
 
         this._out(sprintf('%.2f %.2f %.2f %.2f re %s', x * this.k, (this.h - y) * this.k, w * this.k, -h * this.k, op));
     }
@@ -515,7 +542,6 @@ module.exports = class FPDF {
 
     AddLink() {
         // Create a new internal link
-        //const n = count(this.links) + 1;
         this.links.push([0, 0])// = [0, 0];
         return (this.links.length-1);
     }
@@ -1555,14 +1581,23 @@ module.exports = class FPDF {
     _out(s) {
 
         // Add a line to the document
-        if (this.state == 2)
-            this.pages[this.page] += `${s}\n`;
-        else if (this.state == 1)
-            this._put(s);
-        else if (this.state == 0)
-            this.Error('No page has been added yet');
-        else if (this.state == 3)
-            this.Error('The document is closed');
+        switch (this.state) {
+            case 0:
+                this.Error('No page has been added yet');
+                break;
+            case 1:
+                this._put(s); 
+                break;
+            case 2:
+                this.pages[this.page] += `${s}\n`;    
+                break;
+            case 3:
+                this.Error('The document is closed');
+                break;
+            default:
+                this.Error('Error on End Document');
+                break;
+        }
 
     }
 
@@ -1993,7 +2028,6 @@ module.exports = class FPDF {
         for (const key in this.images) {
             const image = this.images[key];
             this._put(`/I${image['i']} ${image['n']} 0 R`);
-
         }
 
     }
@@ -2035,7 +2069,7 @@ module.exports = class FPDF {
     _putbookmarks(){
 
         let nb = count(this.outlines);
-        if(nb==0){
+        if(nb===0){
             return;
         }
             
@@ -2278,8 +2312,8 @@ module.exports = class FPDF {
         if (this.javascript) {
             this._put(`/Names <</JavaScript ${this.n_js} 0 R>>`);
         }
-        
-        if(count(this.outlines.len)>0){
+     
+        if(count(this.outlines)>0){
             this._put(`/Outlines ${this.outlineRoot} 0 R`);
             this._put('/PageMode /UseOutlines');
         }
@@ -2403,11 +2437,11 @@ module.exports = class FPDF {
     }
 
     Code39(x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true){
-        return Code39(this,x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true)
+        return Code39(this,x, y, code, ext , cks , w, h , wide )
     }
 
     i25(xpos, ypos, code, basewidth=1, height=10){
-        return i25(this,xpos, ypos, code, basewidth=1, height=10)
+        return i25(this,xpos, ypos, code, basewidth, height)
     }
 
     Rotate(angle,x=-1,y=-1){    
