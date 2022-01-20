@@ -136,6 +136,8 @@ module.exports = class FPDF {
         this.SetCompression(true);
         // Set default PDF version number
         this.PDFVersion = '1.3';
+        // Set grid to false
+        this.grid = false;
 
     }
 
@@ -329,7 +331,47 @@ module.exports = class FPDF {
         this.ColorFlag = cf;
     }
 
-    Header() { /* To be implemented in your own inherited class*/ }
+    DrawGrid(){
+        
+        let spacing
+
+        if(this.grid===true){
+            spacing = 5;
+        } else {
+            spacing = this.grid;
+        }
+
+        this.SetDrawColor(204,255,255);
+        this.SetLineWidth(0.35);
+        for(let i=0;i<this.w;i+=spacing){
+            this.Line(i,0,i,this.h);
+        }
+        for(let i=0;i<this.h;i+=spacing){
+            this.Line(0,i,this.w,i);
+        }
+
+        this.SetDrawColor(0,0,0);
+
+        let x = this.GetX();
+        let y = this.GetY();
+        this.SetFont('Arial','I',8);
+        this.SetTextColor(204,204,204);
+        for(let i=20;i<this.h;i+=20){
+            this.SetXY(1,i-3);
+            this.Write(4,`${i}`);
+        }
+        for(let i=20;i<((this.w)-(this.rMargin)-10);i+=20){
+            this.SetXY(i-1,1);
+            this.Write(4,`${i}`);
+        }
+        this.SetXY(x,y);
+    }
+
+    Header() { 
+        if(this.grid){
+            this.DrawGrid()
+        }
+    }
 
     Footer() { /* To be implemented in your own inherited class*/ }
 
@@ -341,9 +383,10 @@ module.exports = class FPDF {
     SetDrawColor(r, g = null, b = null) {
         // Set color for all stroking operations
         if ((r === 0 && g === 0 && b === 0) || g === null) {
-            this.DrawColor = sprintf('%.3f g', r / 255);
+            this.DrawColor = sprintf('%.3f G', r / 255);
+            
         } else {
-            this.DrawColor = sprintf('%.3f %.3f %.3f rg', r / 255, g / 255, b / 255);
+            this.DrawColor = sprintf('%.3f %.3f %.3f RG', r / 255, g / 255, b / 255);
         }
         
         if (this.page > 0) {
@@ -832,6 +875,8 @@ module.exports = class FPDF {
     }
 
     Write(h, txt, link = '') {
+
+        
         // Output text in flowing mode
         if (!isset(this.CurrentFont)) {
             this.Error('No font has been set');

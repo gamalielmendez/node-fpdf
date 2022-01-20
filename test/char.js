@@ -37,7 +37,7 @@ pdf.AddPage();
 // Max ordinate: 6
 // Number of divisions: 3
 pdf.LineGraph(190,100,data,'VH',colors,6,3);
-/*VHkBvBgBdB
+
 pdf.AddPage();
 // Display options: horizontal lines, bounding box around the abscissa values
 // Colors: random
@@ -58,5 +58,5 @@ pdf.AddPage();
 // Max ordinate: 20
 // Number of divisions: 10
 pdf.LineGraph(190,100,data,'HgBdB',null,20,10);
-*/
+
 pdf.Output('f',cPdfName)

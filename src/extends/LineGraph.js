@@ -80,7 +80,6 @@ function LineGraph(Parent,w, h, data, options='', colors=null, maxVal=0, nbDiv=4
     }
     //define colors
     if(colors===null){
-        console.log(':(')
         const safeColors = [0,51,102,153,204,225];
         colors={}
         for(let i=0;i<count(data);i++){

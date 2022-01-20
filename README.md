@@ -89,3 +89,6 @@ pdf.Output('F',`test.pdf`);
 - [x] *IncludeJS - Añade un script en el lenguaje JavaScript*
 - [x] *Bookmark -  Añade Bookmark*
 - [x] *CreateIndexFromBookmark -  Crea Un indice del documento cuando tiene Bookmark*
+- [x] *DrawGrid -  Crea un grid en la hoja util para diseñar reportes ejemplo en [GitHub](https://github.com/gamalielmendez/node-fpdf)*
+
+ **Puedes encontrar ejemplos de uso [aqui](https://github.com/gamalielmendez/node-fpdf/tree/master/test)**
