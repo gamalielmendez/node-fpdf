@@ -89,6 +89,10 @@ pdf.Output('F',`test.pdf`);
 - [x] *IncludeJS - Añade un script en el lenguaje JavaScript*
 - [x] *Bookmark -  Añade Bookmark*
 - [x] *CreateIndexFromBookmark -  Crea Un indice del documento cuando tiene Bookmark*
-- [x] *DrawGrid -  Crea un grid en la hoja util para diseñar reportes ejemplo en [GitHub](https://github.com/gamalielmendez/node-fpdf)*
+- [x] *DrawGrid -  Crea un grid en la hoja util para diseñar reportes*
+- [x] *RoundedRect -  Dibuja un rectangulo con las esquinas redondeadas*
+- [x] *Ellipse -  Dibuja un elipse*
+- [x] *Circle -  Dibuja un circulo*
+- [x] *DashedRect -  Dibuja un rectangulo con borde punteado*
 
  **Puedes encontrar ejemplos de uso [aqui](https://github.com/gamalielmendez/node-fpdf/tree/master/test)**

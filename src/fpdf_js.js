@@ -9,6 +9,7 @@ const i25= require('./extends/code_i25')
 const LineGraph = require('./extends/LineGraph')
 const ShadowCell = require('./extends/ShadowCell')
 const { Readable } = require('stream');
+const { match } = require('assert');
 
 module.exports = class FPDF {
 
@@ -981,6 +982,119 @@ module.exports = class FPDF {
         else
             this.y += h;
 
+    }
+
+    RoundedRect(x, y, w, h, r, style = ''){
+
+        let k = this.k;
+        let hp = this.h;
+        let op
+        if(style==='F'){
+            op='f';
+        }else if(style==='FD' || style==='DF'){
+            op='B';
+        }else{
+            op='S';
+        }
+
+        let MyArc = 4/3 * (Math.sqrt(2) - 1);
+        this._out(sprintf('%.2f %.2f m',(x+r)*k,(hp-y)*k ));
+        let xc = x+w-r ;
+        let yc = y+r;
+        this._out(sprintf('%.2f %.2f l', xc*k,(hp-y)*k ));
+
+        this._Arc(xc + r*MyArc, yc - r, xc + r, yc - r*MyArc, xc + r, yc);
+        xc = x+w-r ;
+        yc = y+h-r;
+        this._out(sprintf('%.2f %.2f l',(x+w)*k,(hp-yc)*k));
+        this._Arc(xc + r, yc + r*MyArc, xc + r*MyArc, yc + r, xc, yc + r);
+        xc = x+r ;
+        yc = y+h-r;
+        this._out(sprintf('%.2f %.2f l',xc*k,(hp-(y+h))*k));
+        this._Arc(xc - r*MyArc, yc + r, xc - r, yc + r*MyArc, xc - r, yc);
+        xc = x+r ;
+        yc = y+r;
+        this._out(sprintf('%.2f %.2f l',(x)*k,(hp-yc)*k ));
+        this._Arc(xc - r, yc - r*MyArc, xc - r*MyArc, yc - r, xc, yc - r);
+        this._out(op);
+    }
+
+    _Arc(x1, y1, x2, y2, x3, y3){
+        let h = this.h;
+        this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c ', x1*this.k, (h-y1)*this.k,x2*this.k, (h-y2)*this.k, x3*this.k, (h-y3)*this.k));
+    }
+
+    Circle(x, y, r, style='D'){
+        this.Ellipse(x,y,r,r,style);
+    }
+
+    Ellipse(x, y, rx, ry, style='D'){
+        
+        let op
+
+        if(style==='F'){
+            op='f';
+        }else if(style==='FD' || style==='DF'){
+            op='B';
+        }else{
+            op='S';
+        }
+
+        let lx=4/3*(Math.SQRT2-1)*rx;
+        let ly=4/3*(Math.SQRT2-1)*ry;
+        let k=this.k;
+        let h=this.h;
+        this._out(sprintf('%.2f %.2f m %.2f %.2f %.2f %.2f %.2f %.2f c',
+            (x+rx)*k,(h-y)*k,
+            (x+rx)*k,(h-(y-ly))*k,
+            (x+lx)*k,(h-(y-ry))*k,
+            x*k,(h-(y-ry))*k));
+        this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c',
+            (x-lx)*k,(h-(y-ry))*k,
+            (x-rx)*k,(h-(y-ly))*k,
+            (x-rx)*k,(h-y)*k));
+        this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c',
+            (x-rx)*k,(h-(y+ly))*k,
+            (x-lx)*k,(h-(y+ry))*k,
+            x*k,(h-(y+ry))*k));
+        this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c %s',
+            (x+lx)*k,(h-(y+ry))*k,
+            (x+rx)*k,(h-(y+ly))*k,
+            (x+rx)*k,(h-y)*k,
+            op));
+    }
+
+    DashedRect(x1, y1, x2, y2, width=1, nb=15){
+
+        this.SetLineWidth(width);
+        let longueur=Math.abs(x1-x2);
+        let hauteur=Math.abs(y1-y2);
+        let Pointilles
+        if(longueur>hauteur) {
+            Pointilles=(longueur/nb)/2; // length of dashes
+        }
+        else {
+            Pointilles=(hauteur/nb)/2;
+        }
+
+        for(let i=x1;i<=x2;i+=Pointilles+Pointilles) {
+            for(let j=i;j<=(i+Pointilles);j++) {
+                if(j<=(x2-1)) {
+                    this.Line(j,y1,j+1,y1); // upper dashes
+                    this.Line(j,y2,j+1,y2); // lower dashes
+                }
+            }
+        }
+
+        for(let i=y1;i<=y2;i+=Pointilles+Pointilles) {
+            for(let j=i;j<=(i+Pointilles);j++) {
+                if(j<=(y2-1)) {
+                    this.Line(x1,j,x1,j+1); // left dashes
+                    this.Line(x2,j,x2,j+1); // right dashes
+                }
+            }
+        }
+        
     }
 
     Image(file, x = null, y = null, w = 0, h = 0, type = '', link = '') {
