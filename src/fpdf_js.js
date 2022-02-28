@@ -128,7 +128,7 @@ module.exports = class FPDF {
         // Interior cell margin (1 mm)
         this.cMargin = margin / 10;
         // Line width (0.2 mm)
-        this.LineWidth = .567 / this.k;
+        this.LineWidth = 0.567 / this.k;
         // Automatic page break
         this.SetAutoPageBreak(true, 2 * margin);
         // Default display mode
@@ -884,10 +884,8 @@ module.exports = class FPDF {
         }
 
         let cw = this.CurrentFont['cw'];
-        //this.x = this.lMargin;
         let w = this.w - this.rMargin - this.x;
         let wmax = ((w - 2 * this.cMargin) * 1000 / this.FontSize);
-        //console.log('wmax primer calculo',wmax)
 
         let s = str_replace("\r", '', txt);
         let nb = strlen(s);
@@ -926,7 +924,7 @@ module.exports = class FPDF {
             }
 
             l += cw[c];
-
+  
             if (l > wmax) {
                 // Automatic line break
                 if (sep === -1) {
@@ -941,11 +939,11 @@ module.exports = class FPDF {
                         nl++;
                         continue;
                     }
-
+                    
                     if (i == j) {
                         i++;
                     }
-
+ 
                     this.Cell(w, h, substr(s, j, i - j), 0, 2, '', false, link);
                 } else {
                     this.Cell(w, h, substr(s, j, sep - j), 0, 2, '', false, link);
@@ -967,6 +965,7 @@ module.exports = class FPDF {
             }
 
         }
+        
         // Last chunk
         if (i !== j) {
             this.Cell(l / 1000 * this.FontSize, h, substr(s, j), 0, 0, '', false, link);
@@ -2742,4 +2741,28 @@ module.exports = class FPDF {
         UPC_A(this,x, y, barcode, h=16, w=.35)
     }
     
+    subWrite(h, txt, link='', subFontSize=12, subOffset=0)
+    {
+        // resize font
+        let subFontSizeold = this.FontSizePt;
+        this.SetFontSize(subFontSize);
+        
+        // reposition y
+        subOffset = (((subFontSize - subFontSizeold) / this.k) * 0.3) + (subOffset / this.k);
+        let subX        = this.x;
+        let subY        = this.y;
+        this.SetXY(subX, subY - subOffset);
+
+        //Output text
+        this.Write(h, txt, link);
+
+        // restore y position
+        subX        = this.x;
+        subY        = this.y;
+        this.SetXY(subX,  subY + subOffset);
+
+        // restore font size
+        this.SetFontSize(subFontSizeold);
+    }
+
 }

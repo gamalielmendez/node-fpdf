@@ -6,6 +6,9 @@
 ### **Apoyar con brave tokens**
 ### ir a repositorio de [GitHub](https://github.com/gamalielmendez/node-fpdf) con el navegador brave
 
+### **Apoyar proyecto en Patreon**
+[![alt text](https://onlcontent.blob.core.windows.net/images/cimga7b6940b4f4c422180c268a12a6d39d2_ico.png)](https://www.patreon.com/user?u=70304264)
+
 # Para Instalar
 ```javascript 
 npm i node-fpdf 
@@ -94,5 +97,6 @@ pdf.Output('F',`test.pdf`);
 - [x] *Ellipse -  Dibuja un elipse*
 - [x] *Circle -  Dibuja un circulo*
 - [x] *DashedRect -  Dibuja un rectangulo con borde punteado*
+- [x] *subWrite - Escribe Texto De Diferentes tamaños*
 
  **Puedes encontrar ejemplos de uso [aqui](https://github.com/gamalielmendez/node-fpdf/tree/master/test)**
