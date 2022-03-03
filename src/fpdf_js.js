@@ -1,19 +1,29 @@
 const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
-    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress,file,str_repeat } = require('./PHP_CoreFunctions')
+    chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress, file, str_repeat } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
-const  Code128= require('./extends/code128')
-const  Code39= require('./extends/code39')
-const  {EAN13,UPC_A}= require('./extends/codeEAN')
-const i25= require('./extends/code_i25')
+const Code128 = require('./extends/code128')
+const Code39 = require('./extends/code39')
+const { EAN13, UPC_A } = require('./extends/codeEAN')
+const i25 = require('./extends/code_i25')
 const LineGraph = require('./extends/LineGraph')
 const ShadowCell = require('./extends/ShadowCell')
+const {_Set_Font_Size_Label,_Add_Label,_Set_Format} = require('./extends/labels')
 const { Readable } = require('stream');
 const { match } = require('assert');
 
 module.exports = class FPDF {
-
-    constructor(orientation = 'P', unit = 'mm', size = 'A4',PDFA=false) {
+    /**
+    * @constructor
+    * @param  {string}
+    * @param  {string}
+    * @param  {string}
+    * @param  {boolean}
+    * @param  {number}
+    * @param  {number}
+    * @return  {FPDF_object}
+    */
+    constructor(orientation = 'P', unit = 'mm', size = 'A4', PDFA = false,posX=1, posY=1) {
 
         // Initialization of properties
         this.FPDF_VERSION = '1.82'
@@ -45,7 +55,7 @@ module.exports = class FPDF {
         this.ws = 0;
         this.AutoPageBreak = true
         this.offset = 0
-        this.angle=0
+        this.angle = 0
         this.outlines = [];
         this.outlineRoot;
 
@@ -56,13 +66,49 @@ module.exports = class FPDF {
         //end fixes
 
         //variables de soporte para PDFA
-        this.PDFA =PDFA
-        this.n_colorprofile=0;
-        this.n_metadata=0;
-        this.CreationDate='';
+        this.PDFA = PDFA
+        this.n_colorprofile = 0;
+        this.n_metadata = 0;
+        this.CreationDate = '';
         //variables para sopote para javascript
         this.javascript
         this.n_js
+
+        //variables para soporte de extension labels
+        this._Margin_Left;        // Left margin of labels
+        this._Margin_Top;            // Top margin of labels
+        this._X_Space;            // Horizontal space between 2 labels
+        this._Y_Space;            // Vertical space between 2 labels
+        this._X_Number;            // Number of labels horizontally
+        this._Y_Number;            // Number of labels vertically
+        this._Width;                // Width of label
+        this._Height;                // Height of label
+        this._Line_Height;        // Line height
+        this._Padding;            // Padding
+        this._Metric_Doc;            // Type of metric for the document
+        this._COUNTX;                // Current x position
+        this._COUNTY;                // Current y position
+        this.Tformat
+        this.lLabels=false;
+        // List of label formats
+        this._Avery_Labels = {
+            '5160': { 'paper-size': 'letter', 'metric': 'mm', 'marginLeft': 1.762, 'marginTop': 10.7, 'NX': 3, 'NY': 10, 'SpaceX': 3.175, 'SpaceY': 0, 'width': 66.675, 'height': 25.4, 'font-size': 8 },
+            '5161': { 'paper-size': 'letter', 'metric': 'mm', 'marginLeft': 0.967, 'marginTop': 10.7, 'NX': 2, 'NY': 10, 'SpaceX': 3.967, 'SpaceY': 0, 'width': 101.6, 'height': 25.4, 'font-size': 8 },
+            '5162': { 'paper-size': 'letter', 'metric': 'mm', 'marginLeft': 0.97, 'marginTop': 20.224, 'NX': 2, 'NY': 7, 'SpaceX': 4.762, 'SpaceY': 0, 'width': 100.807, 'height': 35.72, 'font-size': 8 },
+            '5163': { 'paper-size': 'letter', 'metric': 'mm', 'marginLeft': 1.762, 'marginTop': 10.7, 'NX': 2, 'NY': 5, 'SpaceX': 3.175, 'SpaceY': 0, 'width': 101.6, 'height': 50.8, 'font-size': 8 },
+            '5164': { 'paper-size': 'letter', 'metric': 'in', 'marginLeft': 0.148, 'marginTop': 0.5, 'NX': 2, 'NY': 3, 'SpaceX': 0.2031, 'SpaceY': 0, 'width': 4.0, 'height': 3.33, 'font-size': 12 },
+            '8600': { 'paper-size': 'letter', 'metric': 'mm', 'marginLeft': 7.1, 'marginTop': 19, 'NX': 3, 'NY': 10, 'SpaceX': 9.5, 'SpaceY': 3.1, 'width': 66.6, 'height': 25.4, 'font-size': 8 },
+            'L7163': { 'paper-size': 'A4', 'metric': 'mm', 'marginLeft': 5, 'marginTop': 15, 'NX': 2, 'NY': 7, 'SpaceX': 25, 'SpaceY': 0, 'width': 99.1, 'height': 38.1, 'font-size': 9 },
+            '3422': { 'paper-size': 'A4', 'metric': 'mm', 'marginLeft': 0, 'marginTop': 8.5, 'NX': 3, 'NY': 8, 'SpaceX': 0, 'SpaceY': 0, 'width': 70, 'height': 35, 'font-size': 9 }
+        }
+
+        //valida que sea un formato de etiqueta valido
+        if (orientation in this._Avery_Labels) {
+            size=this._Avery_Labels[orientation]['paper-size']
+            this.Tformat=this._Avery_Labels[orientation]
+            orientation='p'  
+            this.lLabels=true//set on flag to true
+        }
 
         // Font path
         this.fontpath = `${__dirname}/fonts/`
@@ -84,6 +130,7 @@ module.exports = class FPDF {
                 break;
             default:
                 this.Error(`Incorrect unit: ${unit}`);
+
                 break;
         }
 
@@ -92,7 +139,7 @@ module.exports = class FPDF {
         size = this._getpagesize(size);
         this.DefPageSize = size;
         this.CurPageSize = size;
-        
+
         // Page orientation
         orientation = strtolower(orientation);
         switch (orientation) {
@@ -103,7 +150,7 @@ module.exports = class FPDF {
                 this.w = size[0];
                 this.h = size[1];
                 break;
-                
+
             case 'l':
             case 'landscape':
 
@@ -113,6 +160,7 @@ module.exports = class FPDF {
 
                 break;
             default:
+                //si es un formato valido etiqueta configura la clase
                 this.Error(`Incorrect orientation: ${orientation}`);
                 break;
         }
@@ -139,6 +187,16 @@ module.exports = class FPDF {
         this.PDFVersion = '1.3';
         // Set grid to false
         this.grid = false;
+
+        if(this.lLabels){
+            this._Metric_Doc = unit;
+            _Set_Format(this,this.Tformat);
+            this.SetFont('Arial');
+            this.SetMargins(0,0); 
+            this.SetAutoPageBreak(false); 
+            this._COUNTX = posX-2;
+            this._COUNTY = posY-1;
+        }
 
     }
 
@@ -332,44 +390,44 @@ module.exports = class FPDF {
         this.ColorFlag = cf;
     }
 
-    DrawGrid(){
-        
+    DrawGrid() {
+
         let spacing
 
-        if(this.grid===true){
+        if (this.grid === true) {
             spacing = 5;
         } else {
             spacing = this.grid;
         }
 
-        this.SetDrawColor(204,255,255);
+        this.SetDrawColor(204, 255, 255);
         this.SetLineWidth(0.35);
-        for(let i=0;i<this.w;i+=spacing){
-            this.Line(i,0,i,this.h);
+        for (let i = 0; i < this.w; i += spacing) {
+            this.Line(i, 0, i, this.h);
         }
-        for(let i=0;i<this.h;i+=spacing){
-            this.Line(0,i,this.w,i);
+        for (let i = 0; i < this.h; i += spacing) {
+            this.Line(0, i, this.w, i);
         }
 
-        this.SetDrawColor(0,0,0);
+        this.SetDrawColor(0, 0, 0);
 
         let x = this.GetX();
         let y = this.GetY();
-        this.SetFont('Arial','I',8);
-        this.SetTextColor(204,204,204);
-        for(let i=20;i<this.h;i+=20){
-            this.SetXY(1,i-3);
-            this.Write(4,`${i}`);
+        this.SetFont('Arial', 'I', 8);
+        this.SetTextColor(204, 204, 204);
+        for (let i = 20; i < this.h; i += 20) {
+            this.SetXY(1, i - 3);
+            this.Write(4, `${i}`);
         }
-        for(let i=20;i<((this.w)-(this.rMargin)-10);i+=20){
-            this.SetXY(i-1,1);
-            this.Write(4,`${i}`);
+        for (let i = 20; i < ((this.w) - (this.rMargin) - 10); i += 20) {
+            this.SetXY(i - 1, 1);
+            this.Write(4, `${i}`);
         }
-        this.SetXY(x,y);
+        this.SetXY(x, y);
     }
 
-    Header() { 
-        if(this.grid){
+    Header() {
+        if (this.grid) {
             this.DrawGrid()
         }
     }
@@ -385,11 +443,11 @@ module.exports = class FPDF {
         // Set color for all stroking operations
         if ((r === 0 && g === 0 && b === 0) || g === null) {
             this.DrawColor = sprintf('%.3f G', r / 255);
-            
+
         } else {
             this.DrawColor = sprintf('%.3f %.3f %.3f RG', r / 255, g / 255, b / 255);
         }
-        
+
         if (this.page > 0) {
             this._out(this.DrawColor);
         }
@@ -453,9 +511,9 @@ module.exports = class FPDF {
     }
 
     Rect(x, y, w, h, style = '') {
-        
+
         let op
-        
+
         // Draw a rectangle
         switch (style) {
             case 'F':
@@ -464,7 +522,7 @@ module.exports = class FPDF {
             case 'FD':
             case 'DF':
                 op = 'B';
-                break;  
+                break;
             default:
                 op = 'S';
                 break;
@@ -587,7 +645,7 @@ module.exports = class FPDF {
     AddLink() {
         // Create a new internal link
         this.links.push([0, 0])// = [0, 0];
-        return (this.links.length-1);
+        return (this.links.length - 1);
     }
 
     SetLink(link, y = 0, page = -1) {
@@ -606,8 +664,8 @@ module.exports = class FPDF {
     Link(x, y, w, h, link) {
 
         // Put a link on the page
-        if(typeof this.PageLinks[`${this.page}`] === "undefined"){
-            this.PageLinks[`${this.page}`]=[]      
+        if (typeof this.PageLinks[`${this.page}`] === "undefined") {
+            this.PageLinks[`${this.page}`] = []
         }
 
         this.PageLinks[`${this.page}`].push([x * this.k, this.hPt - y * this.k, w * this.k, h * this.k, link]);
@@ -877,7 +935,7 @@ module.exports = class FPDF {
 
     Write(h, txt, link = '') {
 
-        
+
         // Output text in flowing mode
         if (!isset(this.CurrentFont)) {
             this.Error('No font has been set');
@@ -924,7 +982,7 @@ module.exports = class FPDF {
             }
 
             l += cw[c];
-  
+
             if (l > wmax) {
                 // Automatic line break
                 if (sep === -1) {
@@ -939,11 +997,11 @@ module.exports = class FPDF {
                         nl++;
                         continue;
                     }
-                    
+
                     if (i == j) {
                         i++;
                     }
- 
+
                     this.Cell(w, h, substr(s, j, i - j), 0, 2, '', false, link);
                 } else {
                     this.Cell(w, h, substr(s, j, sep - j), 0, 2, '', false, link);
@@ -965,7 +1023,7 @@ module.exports = class FPDF {
             }
 
         }
-        
+
         // Last chunk
         if (i !== j) {
             this.Cell(l / 1000 * this.FontSize, h, substr(s, j), 0, 0, '', false, link);
@@ -983,117 +1041,117 @@ module.exports = class FPDF {
 
     }
 
-    RoundedRect(x, y, w, h, r, style = ''){
+    RoundedRect(x, y, w, h, r, style = '') {
 
         let k = this.k;
         let hp = this.h;
         let op
-        if(style==='F'){
-            op='f';
-        }else if(style==='FD' || style==='DF'){
-            op='B';
-        }else{
-            op='S';
+        if (style === 'F') {
+            op = 'f';
+        } else if (style === 'FD' || style === 'DF') {
+            op = 'B';
+        } else {
+            op = 'S';
         }
 
-        let MyArc = 4/3 * (Math.sqrt(2) - 1);
-        this._out(sprintf('%.2f %.2f m',(x+r)*k,(hp-y)*k ));
-        let xc = x+w-r ;
-        let yc = y+r;
-        this._out(sprintf('%.2f %.2f l', xc*k,(hp-y)*k ));
+        let MyArc = 4 / 3 * (Math.sqrt(2) - 1);
+        this._out(sprintf('%.2f %.2f m', (x + r) * k, (hp - y) * k));
+        let xc = x + w - r;
+        let yc = y + r;
+        this._out(sprintf('%.2f %.2f l', xc * k, (hp - y) * k));
 
-        this._Arc(xc + r*MyArc, yc - r, xc + r, yc - r*MyArc, xc + r, yc);
-        xc = x+w-r ;
-        yc = y+h-r;
-        this._out(sprintf('%.2f %.2f l',(x+w)*k,(hp-yc)*k));
-        this._Arc(xc + r, yc + r*MyArc, xc + r*MyArc, yc + r, xc, yc + r);
-        xc = x+r ;
-        yc = y+h-r;
-        this._out(sprintf('%.2f %.2f l',xc*k,(hp-(y+h))*k));
-        this._Arc(xc - r*MyArc, yc + r, xc - r, yc + r*MyArc, xc - r, yc);
-        xc = x+r ;
-        yc = y+r;
-        this._out(sprintf('%.2f %.2f l',(x)*k,(hp-yc)*k ));
-        this._Arc(xc - r, yc - r*MyArc, xc - r*MyArc, yc - r, xc, yc - r);
+        this._Arc(xc + r * MyArc, yc - r, xc + r, yc - r * MyArc, xc + r, yc);
+        xc = x + w - r;
+        yc = y + h - r;
+        this._out(sprintf('%.2f %.2f l', (x + w) * k, (hp - yc) * k));
+        this._Arc(xc + r, yc + r * MyArc, xc + r * MyArc, yc + r, xc, yc + r);
+        xc = x + r;
+        yc = y + h - r;
+        this._out(sprintf('%.2f %.2f l', xc * k, (hp - (y + h)) * k));
+        this._Arc(xc - r * MyArc, yc + r, xc - r, yc + r * MyArc, xc - r, yc);
+        xc = x + r;
+        yc = y + r;
+        this._out(sprintf('%.2f %.2f l', (x) * k, (hp - yc) * k));
+        this._Arc(xc - r, yc - r * MyArc, xc - r * MyArc, yc - r, xc, yc - r);
         this._out(op);
     }
 
-    _Arc(x1, y1, x2, y2, x3, y3){
+    _Arc(x1, y1, x2, y2, x3, y3) {
         let h = this.h;
-        this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c ', x1*this.k, (h-y1)*this.k,x2*this.k, (h-y2)*this.k, x3*this.k, (h-y3)*this.k));
+        this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c ', x1 * this.k, (h - y1) * this.k, x2 * this.k, (h - y2) * this.k, x3 * this.k, (h - y3) * this.k));
     }
 
-    Circle(x, y, r, style='D'){
-        this.Ellipse(x,y,r,r,style);
+    Circle(x, y, r, style = 'D') {
+        this.Ellipse(x, y, r, r, style);
     }
 
-    Ellipse(x, y, rx, ry, style='D'){
-        
+    Ellipse(x, y, rx, ry, style = 'D') {
+
         let op
 
-        if(style==='F'){
-            op='f';
-        }else if(style==='FD' || style==='DF'){
-            op='B';
-        }else{
-            op='S';
+        if (style === 'F') {
+            op = 'f';
+        } else if (style === 'FD' || style === 'DF') {
+            op = 'B';
+        } else {
+            op = 'S';
         }
 
-        let lx=4/3*(Math.SQRT2-1)*rx;
-        let ly=4/3*(Math.SQRT2-1)*ry;
-        let k=this.k;
-        let h=this.h;
+        let lx = 4 / 3 * (Math.SQRT2 - 1) * rx;
+        let ly = 4 / 3 * (Math.SQRT2 - 1) * ry;
+        let k = this.k;
+        let h = this.h;
         this._out(sprintf('%.2f %.2f m %.2f %.2f %.2f %.2f %.2f %.2f c',
-            (x+rx)*k,(h-y)*k,
-            (x+rx)*k,(h-(y-ly))*k,
-            (x+lx)*k,(h-(y-ry))*k,
-            x*k,(h-(y-ry))*k));
+            (x + rx) * k, (h - y) * k,
+            (x + rx) * k, (h - (y - ly)) * k,
+            (x + lx) * k, (h - (y - ry)) * k,
+            x * k, (h - (y - ry)) * k));
         this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c',
-            (x-lx)*k,(h-(y-ry))*k,
-            (x-rx)*k,(h-(y-ly))*k,
-            (x-rx)*k,(h-y)*k));
+            (x - lx) * k, (h - (y - ry)) * k,
+            (x - rx) * k, (h - (y - ly)) * k,
+            (x - rx) * k, (h - y) * k));
         this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c',
-            (x-rx)*k,(h-(y+ly))*k,
-            (x-lx)*k,(h-(y+ry))*k,
-            x*k,(h-(y+ry))*k));
+            (x - rx) * k, (h - (y + ly)) * k,
+            (x - lx) * k, (h - (y + ry)) * k,
+            x * k, (h - (y + ry)) * k));
         this._out(sprintf('%.2f %.2f %.2f %.2f %.2f %.2f c %s',
-            (x+lx)*k,(h-(y+ry))*k,
-            (x+rx)*k,(h-(y+ly))*k,
-            (x+rx)*k,(h-y)*k,
+            (x + lx) * k, (h - (y + ry)) * k,
+            (x + rx) * k, (h - (y + ly)) * k,
+            (x + rx) * k, (h - y) * k,
             op));
     }
 
-    DashedRect(x1, y1, x2, y2, width=1, nb=15){
+    DashedRect(x1, y1, x2, y2, width = 1, nb = 15) {
 
         this.SetLineWidth(width);
-        let longueur=Math.abs(x1-x2);
-        let hauteur=Math.abs(y1-y2);
+        let longueur = Math.abs(x1 - x2);
+        let hauteur = Math.abs(y1 - y2);
         let Pointilles
-        if(longueur>hauteur) {
-            Pointilles=(longueur/nb)/2; // length of dashes
+        if (longueur > hauteur) {
+            Pointilles = (longueur / nb) / 2; // length of dashes
         }
         else {
-            Pointilles=(hauteur/nb)/2;
+            Pointilles = (hauteur / nb) / 2;
         }
 
-        for(let i=x1;i<=x2;i+=Pointilles+Pointilles) {
-            for(let j=i;j<=(i+Pointilles);j++) {
-                if(j<=(x2-1)) {
-                    this.Line(j,y1,j+1,y1); // upper dashes
-                    this.Line(j,y2,j+1,y2); // lower dashes
+        for (let i = x1; i <= x2; i += Pointilles + Pointilles) {
+            for (let j = i; j <= (i + Pointilles); j++) {
+                if (j <= (x2 - 1)) {
+                    this.Line(j, y1, j + 1, y1); // upper dashes
+                    this.Line(j, y2, j + 1, y2); // lower dashes
                 }
             }
         }
 
-        for(let i=y1;i<=y2;i+=Pointilles+Pointilles) {
-            for(let j=i;j<=(i+Pointilles);j++) {
-                if(j<=(y2-1)) {
-                    this.Line(x1,j,x1,j+1); // left dashes
-                    this.Line(x2,j,x2,j+1); // right dashes
+        for (let i = y1; i <= y2; i += Pointilles + Pointilles) {
+            for (let j = i; j <= (i + Pointilles); j++) {
+                if (j <= (y2 - 1)) {
+                    this.Line(x1, j, x1, j + 1); // left dashes
+                    this.Line(x2, j, x2, j + 1); // right dashes
                 }
             }
         }
-        
+
     }
 
     Image(file, x = null, y = null, w = 0, h = 0, type = '', link = '') {
@@ -1369,13 +1427,13 @@ module.exports = class FPDF {
 
     }
 
-    _endpage() { 
-        
-        if(this.angle!==0){
-            this.angle=0;
+    _endpage() {
+
+        if (this.angle !== 0) {
+            this.angle = 0;
             this._out('Q');
         }
-        this.state = 1; 
+        this.state = 1;
     }
 
     _loadfont(font) {
@@ -1744,10 +1802,10 @@ module.exports = class FPDF {
                 this.Error('No page has been added yet');
                 break;
             case 1:
-                this._put(s); 
+                this._put(s);
                 break;
             case 2:
-                this.pages[this.page] += `${s}\n`;    
+                this.pages[this.page] += `${s}\n`;
                 break;
             case 3:
                 this.Error('The document is closed');
@@ -1825,8 +1883,8 @@ module.exports = class FPDF {
             // Links
             let annots = '/Annots [';
 
-            this.PageLinks[`${n}`].forEach((pl,i) => {
-                
+            this.PageLinks[`${n}`].forEach((pl, i) => {
+
                 let rect = sprintf('%.2f %.2f %.2f %.2f', pl[0], pl[1], pl[0] + pl[2], pl[1] - pl[3]);
                 annots += `<</Type /Annot /Subtype /Link /Rect [${rect}] /Border [0 0 0] `;
 
@@ -2205,13 +2263,13 @@ module.exports = class FPDF {
         this._put('>>');
     }
 
-    
+
     _putjavascript() {
 
         this._newobj();
-        this.n_js=this.n;
+        this.n_js = this.n;
         this._put('<<');
-        this._put(`/Names [(EmbeddedJS) ${this.n+1} 0 R]`);
+        this._put(`/Names [(EmbeddedJS) ${this.n + 1} 0 R]`);
         this._put('>>');
         this._put('endobj');
         this._newobj();
@@ -2220,40 +2278,38 @@ module.exports = class FPDF {
         this._put(`/JS ${this._textstring(this.javascript)}`);
         this._put('>>');
         this._put('endobj');
-        
+
     }
 
 
-    _putbookmarks(){
+    _putbookmarks() {
 
         let nb = count(this.outlines);
-        if(nb===0){
+        if (nb === 0) {
             return;
         }
-            
+
         let lru = [];
         let level = 0;
 
-        this.outlines.forEach( (o,i)=> {
-            
-            if(o['l']>0){
-                
-                let parent = lru[o['l']-1];
+        this.outlines.forEach((o, i) => {
+
+            if (o['l'] > 0) {
+
+                let parent = lru[o['l'] - 1];
                 // Set parent and last pointers
                 this.outlines[i]['parent'] = parent;
                 this.outlines[parent]['last'] = i;
-                if(o['l']>level)
-                {
+                if (o['l'] > level) {
                     // Level increasing: set first pointer
                     this.outlines[parent]['first'] = i;
                 }
 
-            }else{
+            } else {
                 this.outlines[i]['parent'] = nb;
-            } 
+            }
 
-            if(o['l']<=level && i>0)
-            {
+            if (o['l'] <= level && i > 0) {
                 // Set prev and next pointers
                 let prev = lru[o['l']];
                 this.outlines[prev]['next'] = i;
@@ -2266,18 +2322,18 @@ module.exports = class FPDF {
         });
 
         // Outline items
-        let n = this.n+1;
-        this.outlines.forEach( (o,i)=> {
+        let n = this.n + 1;
+        this.outlines.forEach((o, i) => {
             this._newobj();
             this._put(`<</Title ${this._textstring(o['t'])}`);
-            this._put(`/Parent ${(n+o['parent'])} 0 R`);
+            this._put(`/Parent ${(n + o['parent'])} 0 R`);
 
-            if(isset(o['prev'])){ this._put(`/Prev ${(n+o['prev'])} 0 R`); }
-            if(isset(o['next'])){ this._put(`/Next ${(n+o['next'])} 0 R`); }
-            if(isset(o['first'])){ this._put(`/First ${(n+o['first'])} 0 R`); }
-            if(isset(o['last'])){ this._put(`/Last ${(n+o['last'])} 0 R`); }
-            
-            this._put(sprintf('/Dest [%d 0 R /XYZ 0 %.2f null]',this.PageInfo[o['p']]['n'],o['y']));
+            if (isset(o['prev'])) { this._put(`/Prev ${(n + o['prev'])} 0 R`); }
+            if (isset(o['next'])) { this._put(`/Next ${(n + o['next'])} 0 R`); }
+            if (isset(o['first'])) { this._put(`/First ${(n + o['first'])} 0 R`); }
+            if (isset(o['last'])) { this._put(`/Last ${(n + o['last'])} 0 R`); }
+
+            this._put(sprintf('/Dest [%d 0 R /XYZ 0 %.2f null]', this.PageInfo[o['p']]['n'], o['y']));
             this._put('/Count 0>>');
             this._put('endobj');
         });
@@ -2286,14 +2342,14 @@ module.exports = class FPDF {
         this._newobj();
         this.outlineRoot = this.n;
         this._put(`<</Type /Outlines /First ${n} 0 R`);
-        this._put(`/Last ${(n+lru[0])} 0 R>>`);
+        this._put(`/Last ${(n + lru[0])} 0 R>>`);
         this._put('endobj');
 
     }
 
 
     _putresources() {
-        
+
         this._putfonts();
         this._putimages();
         // Resource dictionary
@@ -2303,59 +2359,54 @@ module.exports = class FPDF {
         this._put('>>');
         this._put('endobj');
 
-        if(this.javascript){
+        if (this.javascript) {
             this._putjavascript()
         }
 
         this._putbookmarks();
 
-        if(this.PDFA){
+        if (this.PDFA) {
             this._putcolorprofile();
             this._putmetadata();
         }
     }
 
-    _putcolorprofile()
-    {
-        let icc = file(__dirname+'/sRGB2014.icc');
-        if(!icc)
+    _putcolorprofile() {
+        let icc = file(__dirname + '/sRGB2014.icc');
+        if (!icc)
             this.Error('Could not load the ICC profile');
 
         this._newobj();
         this.n_colorprofile = this.n;
         this._put('<<');
-        this._put('/Length '+strlen(icc));
+        this._put('/Length ' + strlen(icc));
         this._put('/N 3');
         this._put('>>');
         this._putstream(icc);
         this._put('endobj');
     }
 
-    _getxmpdescription(alias, ns, body)
-    {
+    _getxmpdescription(alias, ns, body) {
         return sprintf("\t<rdf:Description rdf:about=\"\" xmlns:%s=\"%s\">\n%s\t</rdf:Description>\n", alias, ns, body);
     }
 
-    _getxmpsimple(tag, value)
-    {
+    _getxmpsimple(tag, value) {
         value = this.escapeHtml(value);
         return sprintf("\t\t<%s>%s</%s>\n", tag, value, tag);
     }
 
-     _getxmpseq(tag, value)
-    {
+    _getxmpseq(tag, value) {
         value = this.escapeHtml(value);
         return sprintf("\t\t<%s>\n\t\t\t<rdf:Seq>\n\t\t\t\t<rdf:li>%s</rdf:li>\n\t\t\t</rdf:Seq>\n\t\t</%s>\n", tag, value, tag);
     }
 
-    _getxmpalt(tag, value)
-    {
+    _getxmpalt(tag, value) {
         value = this.escapeHtml(value);
         return sprintf("\t\t<%s>\n\t\t\t<rdf:Alt>\n\t\t\t\t<rdf:li xml:lang=\"x-default\">%s</rdf:li>\n\t\t\t</rdf:Alt>\n\t\t</%s>\n", tag, value, tag);
     }
-    
+
     escapeHtml(text) {
-        
+
         var map = {
             '&': '&amp;',
             '<': '&lt;',
@@ -2363,48 +2414,47 @@ module.exports = class FPDF {
             '"': '&quot;',
             "'": '&#039;'
         };
-          
-        return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+
+        return text.replace(/[&<>"']/g, function (m) { return map[m]; });
     }
 
-    _putmetadata()
-    {
+    _putmetadata() {
         let pdf = this._getxmpsimple('pdf:Producer', this.metadata['Producer']);
-        if(isset(this.metadata['Keywords'])){
+        if (isset(this.metadata['Keywords'])) {
             pdf += this._getxmpsimple('pdf:Keywords', this.metadata['Keywords']);
         }
-            
+
         const date = new Date();
         const YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
         let xmp = this._getxmpsimple('xmp:CreateDate', YYYYMMDDHHMMSS);
-        if(isset(this.metadata['Creator'])){
+        if (isset(this.metadata['Creator'])) {
             xmp += this._getxmpsimple('xmp:CreatorTool', this.metadata['Creator']);
-        }   
+        }
 
         let dc = '';
-        if(isset(this.metadata['Author']))
+        if (isset(this.metadata['Author']))
             dc += this._getxmpseq('dc:creator', this.metadata['Author']);
 
-        if(isset(this.metadata['Title']))
+        if (isset(this.metadata['Title']))
             dc += this._getxmpalt('dc:title', this.metadata['Title']);
 
-        if(isset(this.metadata['Subject']))
+        if (isset(this.metadata['Subject']))
             dc += this._getxmpalt('dc:description', this.metadata['Subject']);
 
         let pdfaid = this._getxmpsimple('pdfaid:part', '1');
         pdfaid += this._getxmpsimple('pdfaid:conformance', 'B');
 
-        let s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>'+"\n";
-        s += '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'+"\n";
+        let s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>' + "\n";
+        s += '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">' + "\n";
         s += this._getxmpdescription('pdf', 'http://ns.adobe.com/pdf/1.3/', pdf);
         s += this._getxmpdescription('xmp', 'http://ns.adobe.com/xap/1.0/', xmp);
-        
-        if(dc!==''){
+
+        if (dc !== '') {
             s += this._getxmpdescription('dc', 'http://purl.org/dc/elements/1.1/', dc);
         }
 
         s += this._getxmpdescription('pdfaid', 'http://www.aiim.org/pdfa/ns/id/', pdfaid);
-        s += '</rdf:RDF>'+"\n";
+        s += '</rdf:RDF>' + "\n";
         s += '<?xpacket end="r"?>';
 
         this._newobj();
@@ -2412,7 +2462,7 @@ module.exports = class FPDF {
         this._put('<<');
         this._put('/Type /Metadata');
         this._put('/Subtype /XML');
-        this._put('/Length '+strlen(s));
+        this._put('/Length ' + strlen(s));
         this._put('>>');
         this._putstream(s);
         this._put('endobj');
@@ -2421,7 +2471,7 @@ module.exports = class FPDF {
 
 
     _putinfo() {
-  
+
         const date = new Date();
         const YYYYMMDDHHMMSS = date.getFullYear() + ("0" + (date.getMonth() + 1)).slice(-2) + ("0" + date.getDate()).slice(-2) + ("0" + date.getHours() + 1).slice(-2) + ("0" + date.getMinutes()).slice(-2) + ("0" + date.getSeconds()).slice(-2);
         this.metadata['Producer'] = 'FPDF ' + this.PDFVersion
@@ -2431,7 +2481,7 @@ module.exports = class FPDF {
             const value = this.metadata[key]
             this._put(`/${key} ${this._textstring(value)}`);
         }
-    
+
     }
 
     _putcatalog() {
@@ -2451,10 +2501,10 @@ module.exports = class FPDF {
                 this._put(`/OpenAction [${n} 0 R /XYZ null null 1]`);
                 break;
             default:
-                if(!is_string(this.ZoomMode)){ this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f', this.ZoomMode / 100)}]`); }
+                if (!is_string(this.ZoomMode)) { this._put(`/OpenAction [${n} 0 R /XYZ null null ${sprintf('%.2f', this.ZoomMode / 100)}]`); }
                 break;
         }
- 
+
         switch (this.LayoutMode) {
             case "single":
                 this._put('/PageLayout /SinglePage');
@@ -2470,13 +2520,19 @@ module.exports = class FPDF {
         if (this.javascript) {
             this._put(`/Names <</JavaScript ${this.n_js} 0 R>>`);
         }
-     
-        if(count(this.outlines)>0){
+
+        if (count(this.outlines) > 0) {
             this._put(`/Outlines ${this.outlineRoot} 0 R`);
             this._put('/PageMode /UseOutlines');
         }
 
-        if(this.PDFA){
+        //label extension
+        if(this.lLabels){
+            // Disable the page scaling option in the printing dialog
+            this._put('/ViewerPreferences <</PrintScaling /None>>');
+        }
+
+        if (this.PDFA) {
 
             let oi = '<</Type /OutputIntent /S /GTS_PDFA1 '
             oi += '/OutputConditionIdentifier (sRGB2014.icc) /Info (sRGB2014.icc) /RegistryName (http://www.color.org) '
@@ -2490,30 +2546,30 @@ module.exports = class FPDF {
     }
 
     _putheader() {
-        
-        if(!this.PDFA){
+
+        if (!this.PDFA) {
             this._put('%PDF-' + this.PDFVersion);
-        }else{
+        } else {
             this._put('%PDF-1.4');
             this._put('%\xE2\xE3\xCF\xD3');
         }
-        
+
     }
 
     _puttrailer() {
-        
+
         this._put(`/Size ${this.n + 1}`);
         this._put(`/Root ${this.n} 0 R`);
         this._put(`/Info ${this.n - 1} 0 R`);
 
-        if(this.PDFA){
+        if (this.PDFA) {
             const id = this.uniqid();
             this._put(`/ID [(${id})(${id})]`);
         }
     }
 
-    uniqid(){
-        
+    uniqid() {
+
         const n = Math.floor(Math.random() * 11);
         const k = Math.floor(Math.random() * 1000000);
         const m = String.fromCharCode(n) + k;
@@ -2527,24 +2583,24 @@ module.exports = class FPDF {
     }
 
     _enddoc() {
-        
-        if(this.PDFA){
-            
+
+        if (this.PDFA) {
+
             for (const key in this.fonts) {
-    
+
                 const font = this.fonts[key];
-                if(font['type']==='Core'){
-                   this.Error('All fonts must be embedded in PDF/A');
+                if (font['type'] === 'Core') {
+                    this.Error('All fonts must be embedded in PDF/A');
                 }
-                
+
             }
 
-            if(this.WithAlpha){
+            if (this.WithAlpha) {
                 this.Error('Alpha channel is not allowed in PDF/A-1');
             }
-            
+
             this.CreationDate = this.time();
-            this.metadata['Producer'] = `FPDF ${this.FPDF_VERSION}`; 
+            this.metadata['Producer'] = `FPDF ${this.FPDF_VERSION}`;
 
         }
 
@@ -2585,184 +2641,190 @@ module.exports = class FPDF {
 
     }
 
-    Code128(x, y, code, w, h){
-        
+    Code128(x, y, code, w, h) {
+
         //se genera el codigo de barra 128
-        const CellPorceH=(this.FontSize *1.181102)
-        Code128(this,x, y, code, w, h)
-        this.SetXY(x,(y+h)+2)
-        this.Cell(w,CellPorceH,code,undefined,undefined,'C')
+        const CellPorceH = (this.FontSize * 1.181102)
+        Code128(this, x, y, code, w, h)
+        this.SetXY(x, (y + h) + 2)
+        this.Cell(w, CellPorceH, code, undefined, undefined, 'C')
     }
 
-    Code39(x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true){
-        return Code39(this,x, y, code, ext , cks , w, h , wide )
+    Code39(x, y, code, ext = true, cks = false, w = 0.4, h = 20, wide = true) {
+        return Code39(this, x, y, code, ext, cks, w, h, wide)
     }
 
-    i25(xpos, ypos, code, basewidth=1, height=10){
-        return i25(this,xpos, ypos, code, basewidth, height)
+    i25(xpos, ypos, code, basewidth = 1, height = 10) {
+        return i25(this, xpos, ypos, code, basewidth, height)
     }
 
-    Rotate(angle,x=-1,y=-1){    
-        if(x==-1)
-            x=this.x;
-        if(y==-1)
-            y=this.y;
+    Rotate(angle, x = -1, y = -1) {
+        if (x == -1)
+            x = this.x;
+        if (y == -1)
+            y = this.y;
 
-        if(this.angle!==0)
+        if (this.angle !== 0)
             this._out('Q');
 
-        this.angle=angle;
-        if(angle!==0){
-            angle*=Math.PI/180;
-            let c=Math.cos(angle);
-            let s=Math.sin(angle);
-            let cx=x*this.k;
-            let cy=(this.h-y)*this.k;
-            this._out(sprintf('q %.5f %.5f %.5f %.5f %.2f %.2f cm 1 0 0 1 %.2f %.2f cm',c,s,-s,c,cx,cy,-cx,-cy));
+        this.angle = angle;
+        if (angle !== 0) {
+            angle *= Math.PI / 180;
+            let c = Math.cos(angle);
+            let s = Math.sin(angle);
+            let cx = x * this.k;
+            let cy = (this.h - y) * this.k;
+            this._out(sprintf('q %.5f %.5f %.5f %.5f %.2f %.2f cm 1 0 0 1 %.2f %.2f cm', c, s, -s, c, cx, cy, -cx, -cy));
         }
     }
 
-    RotatedText(x,y,txt,angle){
+    RotatedText(x, y, txt, angle) {
         //Text rotated around its origin
-        this.Rotate(angle,x,y);
-        this.Text(x,y,txt);
+        this.Rotate(angle, x, y);
+        this.Text(x, y, txt);
         this.Rotate(0);
     }
 
-    RotatedImage(file,x,y,w,h,angle){
+    RotatedImage(file, x, y, w, h, angle) {
         //Image rotated around its upper-left corner
-        this.Rotate(angle,x,y);
-        this.Image(file,x,y,w,h);
+        this.Rotate(angle, x, y);
+        this.Image(file, x, y, w, h);
         this.Rotate(0);
     }
-    
-    SetWatermark(Watermark){
+
+    SetWatermark(Watermark) {
 
         //se respalda la fuente actual
-        const family =this.FontFamily;
-        const style =this.FontStyle;
-        const size= this.FontSizePt;
+        const family = this.FontFamily;
+        const style = this.FontStyle;
+        const size = this.FontSizePt;
 
         //Put the watermark
-        this.SetFont('Arial','B',50);
-        this.SetTextColor(255,192,203);
-        this.RotatedText(35,190,Watermark,45);
+        this.SetFont('Arial', 'B', 50);
+        this.SetTextColor(255, 192, 203);
+        this.RotatedText(35, 190, Watermark, 45);
 
         //se restaura la fuente
-        this.SetFont(family,style,size);
+        this.SetFont(family, style, size);
     }
 
-    LineGraph(w, h, data, options='', colors=null, maxVal=0, nbDiv=4){
-        LineGraph(this,w, h, data, options, colors, maxVal, nbDiv)
+    LineGraph(w, h, data, options = '', colors = null, maxVal = 0, nbDiv = 4) {
+        LineGraph(this, w, h, data, options, colors, maxVal, nbDiv)
     }
 
-    ShadowCell(w, h=0, txt='', border=0, ln=0, align='', fill=false, link='', color='G', distance=0.5){
-        ShadowCell(this,w, h, txt, border, ln, align, fill, link, color, distance)
+    ShadowCell(w, h = 0, txt = '', border = 0, ln = 0, align = '', fill = false, link = '', color = 'G', distance = 0.5) {
+        ShadowCell(this, w, h, txt, border, ln, align, fill, link, color, distance)
     }
 
-    IncludeJS(script, isUTF8=false) {
-        this.javascript=script;
+    IncludeJS(script, isUTF8 = false) {
+        this.javascript = script;
     }
 
-    Bookmark(txt, isUTF8=false, level=0, y=-1){
-   
-        if(y===-1){
-            y= this.GetY();
+    Bookmark(txt, isUTF8 = false, level = 0, y = -1) {
+
+        if (y === -1) {
+            y = this.GetY();
         }
 
-        this.outlines.push({'t':txt, 'l':level, 'y':(this.h-y)*this.k, 'p':this.PageNo()})
+        this.outlines.push({ 't': txt, 'l': level, 'y': (this.h - y) * this.k, 'p': this.PageNo() })
 
-    }   
+    }
 
-    CreateIndexFromBookmark(cTitle="Index",CreateLinks=false,CustomHeaderCallBack){
+    CreateIndexFromBookmark(cTitle = "Index", CreateLinks = false, CustomHeaderCallBack) {
 
-        if(this.outlines.length<=0){
+        if (this.outlines.length <= 0) {
             return
         }
 
         this.AddPage();
-        this.Bookmark(cTitle,false);
+        this.Bookmark(cTitle, false);
 
-        if(!CustomHeaderCallBack){
+        if (!CustomHeaderCallBack) {
             //Index title
             this.SetFontSize(20);
-            this.Cell(0,5,cTitle,0,1,'C');
+            this.Cell(0, 5, cTitle, 0, 1, 'C');
             this.SetFontSize(15);
             this.Ln(10);
-        }else if(typeof CustomHeaderCallBack ==="function"){
+        } else if (typeof CustomHeaderCallBack === "function") {
             CustomHeaderCallBack()
         }
 
-        let size=this.outlines.length-1
-        let PageCellSize=this.GetStringWidth(`p. ${this.outlines[size-1]['p']}`)+2;
-        for (let i=0;i<size;i++){
-            
+        let size = this.outlines.length - 1
+        let PageCellSize = this.GetStringWidth(`p. ${this.outlines[size - 1]['p']}`) + 2;
+        for (let i = 0; i < size; i++) {
+
             //Offset
-            let level=this.outlines[i]['l'];
-            if(level>0){
-                this.Cell(level*8);
-            }
-    
-            //Caption
-            let str=this.outlines[i]['t'];
-            let strsize=this.GetStringWidth(str);
-            let avail_size=this.w-this.lMargin-this.rMargin-PageCellSize-(level*8)-4;
-            while (strsize>=avail_size){
-                str=substr(str,0,-1);
-                strsize=this.GetStringWidth(str);
+            let level = this.outlines[i]['l'];
+            if (level > 0) {
+                this.Cell(level * 8);
             }
 
-            this.Cell(strsize+2,this.FontSize+2,str,0,0,'',false);
-    
+            //Caption
+            let str = this.outlines[i]['t'];
+            let strsize = this.GetStringWidth(str);
+            let avail_size = this.w - this.lMargin - this.rMargin - PageCellSize - (level * 8) - 4;
+            while (strsize >= avail_size) {
+                str = substr(str, 0, -1);
+                strsize = this.GetStringWidth(str);
+            }
+
+            this.Cell(strsize + 2, this.FontSize + 2, str, 0, 0, '', false);
+
             //Filling dots
-            let w=this.w-this.lMargin-this.rMargin-PageCellSize-(level*8)-(strsize+2);
-            let nb=w/this.GetStringWidth('.');
-            let dots= str_repeat('.',nb); //'.'.repeat(nb) 
-            this.Cell(w,this.FontSize+2,dots,0,0,'R',false);
-    
+            let w = this.w - this.lMargin - this.rMargin - PageCellSize - (level * 8) - (strsize + 2);
+            let nb = w / this.GetStringWidth('.');
+            let dots = str_repeat('.', nb); //'.'.repeat(nb) 
+            this.Cell(w, this.FontSize + 2, dots, 0, 0, 'R', false);
+
             //Page number
-            this.Cell(PageCellSize,this.FontSize+2,`p. ${this.outlines[i]['p']}`,0,1,'R',false);
-            
-            if(CreateLinks){
-                let ln=  this.AddLink()
-                this.SetLink(ln,0,this.outlines[i]['p'])
-                this.Link(this.GetX(),this.GetY(),(strsize+2+w+PageCellSize),(this.FontSize+2),ln)
+            this.Cell(PageCellSize, this.FontSize + 2, `p. ${this.outlines[i]['p']}`, 0, 1, 'R', false);
+
+            if (CreateLinks) {
+                let ln = this.AddLink()
+                this.SetLink(ln, 0, this.outlines[i]['p'])
+                this.Link(this.GetX(), this.GetY(), (strsize + 2 + w + PageCellSize), (this.FontSize + 2), ln)
             }
 
         }
 
     }
 
-    EAN13(x, y, barcode, h=16, w=.35){
-        EAN13(this,x, y, barcode, h=16, w=.35)
+    EAN13(x, y, barcode, h = 16, w = .35) {
+        EAN13(this, x, y, barcode, h = 16, w = .35)
     }
 
-    UPC_A(x, y, barcode, h=16, w=.35){
-        UPC_A(this,x, y, barcode, h=16, w=.35)
+    UPC_A(x, y, barcode, h = 16, w = .35) {
+        UPC_A(this, x, y, barcode, h = 16, w = .35)
     }
-    
-    subWrite(h, txt, link='', subFontSize=12, subOffset=0)
-    {
+
+    subWrite(h, txt, link = '', subFontSize = 12, subOffset = 0) {
         // resize font
         let subFontSizeold = this.FontSizePt;
         this.SetFontSize(subFontSize);
-        
+
         // reposition y
         subOffset = (((subFontSize - subFontSizeold) / this.k) * 0.3) + (subOffset / this.k);
-        let subX        = this.x;
-        let subY        = this.y;
+        let subX = this.x;
+        let subY = this.y;
         this.SetXY(subX, subY - subOffset);
 
         //Output text
         this.Write(h, txt, link);
 
         // restore y position
-        subX        = this.x;
-        subY        = this.y;
-        this.SetXY(subX,  subY + subOffset);
+        subX = this.x;
+        subY = this.y;
+        this.SetXY(subX, subY + subOffset);
 
         // restore font size
         this.SetFontSize(subFontSizeold);
     }
 
+    Set_Font_Size_Label(pt){
+        return _Set_Font_Size_Label,Add_Label(this,pt)
+    }
+
+    Add_Label(text=''){
+        return _Add_Label(this,text) 
+    }
 }

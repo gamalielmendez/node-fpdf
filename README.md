@@ -98,5 +98,7 @@ pdf.Output('F',`test.pdf`);
 - [x] *Circle -  Dibuja un circulo*
 - [x] *DashedRect -  Dibuja un rectangulo con borde punteado*
 - [x] *subWrite - Escribe Texto De Diferentes tamaños*
+- [x] *Set_Font_Size_Label - establece el tamaño de la fuente de la etiqueta*
+- [x] *Add_Label - Agrega una etiqueta al documento*
 
  **Puedes encontrar ejemplos de uso [aqui](https://github.com/gamalielmendez/node-fpdf/tree/master/test)**
