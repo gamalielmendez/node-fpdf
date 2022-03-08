@@ -8,7 +8,7 @@ const { EAN13, UPC_A } = require('./extends/codeEAN')
 const i25 = require('./extends/code_i25')
 const LineGraph = require('./extends/LineGraph')
 const ShadowCell = require('./extends/ShadowCell')
-const {_Set_Font_Size_Label,_Add_Label,_Set_Format} = require('./extends/labels')
+const { _Set_Font_Size_Label, _Add_Label, _Set_Format } = require('./extends/labels')
 const { Readable } = require('stream');
 const { match } = require('assert');
 
@@ -23,7 +23,7 @@ module.exports = class FPDF {
     * @param  {number}
     * @return  {FPDF_object}
     */
-    constructor(orientation = 'P', unit = 'mm', size = 'A4', PDFA = false,posX=1, posY=1) {
+    constructor(orientation = 'P', unit = 'mm', size = 'A4', PDFA = false, posX = 1, posY = 1) {
 
         // Initialization of properties
         this.FPDF_VERSION = '1.82'
@@ -89,7 +89,7 @@ module.exports = class FPDF {
         this._COUNTX;                // Current x position
         this._COUNTY;                // Current y position
         this.Tformat
-        this.lLabels=false;
+        this.lLabels = false;
         // List of label formats
         this._Avery_Labels = {
             '5160': { 'paper-size': 'letter', 'metric': 'mm', 'marginLeft': 1.762, 'marginTop': 10.7, 'NX': 3, 'NY': 10, 'SpaceX': 3.175, 'SpaceY': 0, 'width': 66.675, 'height': 25.4, 'font-size': 8 },
@@ -104,10 +104,10 @@ module.exports = class FPDF {
 
         //valida que sea un formato de etiqueta valido
         if (orientation in this._Avery_Labels) {
-            size=this._Avery_Labels[orientation]['paper-size']
-            this.Tformat=this._Avery_Labels[orientation]
-            orientation='p'  
-            this.lLabels=true//set on flag to true
+            size = this._Avery_Labels[orientation]['paper-size']
+            this.Tformat = this._Avery_Labels[orientation]
+            orientation = 'p'
+            this.lLabels = true//set on flag to true
         }
 
         // Font path
@@ -188,14 +188,14 @@ module.exports = class FPDF {
         // Set grid to false
         this.grid = false;
 
-        if(this.lLabels){
+        if (this.lLabels) {
             this._Metric_Doc = unit;
-            _Set_Format(this,this.Tformat);
+            _Set_Format(this, this.Tformat);
             this.SetFont('Arial');
-            this.SetMargins(0,0); 
-            this.SetAutoPageBreak(false); 
-            this._COUNTX = posX-2;
-            this._COUNTY = posY-1;
+            this.SetMargins(0, 0);
+            this.SetAutoPageBreak(false);
+            this._COUNTX = posX - 2;
+            this._COUNTY = posY - 1;
         }
 
     }
@@ -205,10 +205,7 @@ module.exports = class FPDF {
         this.lMargin = left;
         this.tMargin = top;
 
-        if (right === null) {
-            right = left;
-        }
-
+        right = (right === null) ? left : right
         this.rMargin = right;
 
     }
@@ -240,14 +237,16 @@ module.exports = class FPDF {
     }
 
     SetDisplayMode(zoom, layout = 'default') {
+
         // Set display mode in viewer
-        if (zoom === 'fullpage' || zoom === 'fullwidth' || zoom === 'real' || zoom === 'default' || !is_string(zoom)) {
+        if (['fullpage', 'fullwidth', 'real', 'default'].includes(zoom) || !is_string(zoom)) {
             this.ZoomMode = zoom;
         } else {
             this.Error(`Incorrect zoom display mode: ${zoom}`);
         }
 
-        if (layout === 'single' || layout === 'continuous' || layout === 'two' || layout === 'default') {
+
+        if (['single', 'continuous', 'two', 'default'].includes(layout)) {
             this.LayoutMode = layout;
         } else {
             this.Error(`Incorrect layout display mode: ${layout}`);
@@ -257,12 +256,7 @@ module.exports = class FPDF {
 
     SetCompression(compress) {
         // Set page compression
-        if (function_exists('zlib')) {
-            this.compress = compress;
-        } else {
-            this.compress = false;
-        }
-
+        this.compress = (function_exists('zlib')) ? compress : false
     }
 
     SetTitle(title, isUTF8 = false) {
@@ -553,11 +547,11 @@ module.exports = class FPDF {
 
         if (info['file']) {
             // Embedded font
-            if (info['type'] === 'TrueType')
+            if (info['type'] === 'TrueType') {
                 this.FontFiles[info['file']] = { length1: info['originalsize'] }
-            else
+            } else {
                 this.FontFiles[info['file']] = { length1: info['size1'], length2: info['size2'] }
-
+            }
         }
 
         this.fonts[fontkey] = { ...info };
@@ -716,19 +710,22 @@ module.exports = class FPDF {
             }
 
         }
-
+        /*
         if (w == 0) {
             w = this.w - this.rMargin - this.x;
         }
+        */
+        //si w es cero lo actualiza
+        w = (w === 0) ? (this.w - this.rMargin - this.x) : w
 
         let s = '';
         if (fill || border === 1) {
             let op
-            if (fill)
+            if (fill) {
                 op = (border == 1) ? 'B' : 'f';
-            else
+            } else {
                 op = 'S';
-
+            }
             s = sprintf('%.2f %.2f %.2f %.2f re %s ', this.x * k, (this.h - this.y) * k, w * k, -h * k, op);
         }
 
@@ -736,14 +733,18 @@ module.exports = class FPDF {
             let x = this.x;
             let y = this.y;
 
-            if (strpos(border, 'L') !== -1)
+            if (strpos(border, 'L') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, x * k, (this.h - (y + h)) * k);
-            if (strpos(border, 'T') !== -1)
+            }
+            if (strpos(border, 'T') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - y) * k, (x + w) * k, (this.h - y) * k);
-            if (strpos(border, 'R') !== -1)
+            }
+            if (strpos(border, 'R') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', (x + w) * k, (this.h - y) * k, (x + w) * k, (this.h - (y + h)) * k);
-            if (strpos(border, 'B') !== -1)
+            }
+            if (strpos(border, 'B') !== -1) {
                 s += sprintf('%.2f %.2f m %.2f %.2f l S ', x * k, (this.h - (y + h)) * k, (x + w) * k, (this.h - (y + h)) * k);
+            }
         }
 
         if (txt !== '') {
@@ -752,12 +753,13 @@ module.exports = class FPDF {
             }
 
             let dx
-            if (align === 'R')
+            if (align === 'R') {
                 dx = w - this.cMargin - this.GetStringWidth(txt);
-            else if (align === 'C')
+            } else if (align === 'C') {
                 dx = (w - this.GetStringWidth(txt)) / 2;
-            else
+            } else {
                 dx = this.cMargin;
+            }
 
             if (this.ColorFlag) {
                 s += `q ${this.TextColor} `;
@@ -1034,11 +1036,11 @@ module.exports = class FPDF {
     Ln(h = null) {
         // Line feed; default value is the last cell height
         this.x = this.lMargin;
-        if (h === null)
+        if (h === null) {
             this.y += this.lasth;
-        else
+        } else {
             this.y += h;
-
+        }
     }
 
     RoundedRect(x, y, w, h, r, style = '') {
@@ -1244,10 +1246,11 @@ module.exports = class FPDF {
 
     SetX(x) {
         // Set x position
-        if (x >= 0)
+        if (x >= 0) {
             this.x = x;
-        else
+        } else {
             this.x = this.w + x;
+        }
     }
 
     GetY() {
@@ -1257,13 +1260,15 @@ module.exports = class FPDF {
 
     SetY(y, resetX = true) {
         // Set y position and optionally reset x
-        if (y >= 0)
+        if (y >= 0) {
             this.y = y;
-        else
+        } else {
             this.y = this.h + y;
+        }
 
-        if (resetX)
+        if (resetX) {
             this.x = this.lMargin;
+        }
     }
 
     SetXY(x, y) {
@@ -1364,10 +1369,11 @@ module.exports = class FPDF {
 
         } else {
 
-            if (size[0] > size[1])
+            if (size[0] > size[1]) {
                 return [size[1], size[0]];
-            else
+            } else {
                 return size;
+            }
         }
     }
 
@@ -1380,15 +1386,17 @@ module.exports = class FPDF {
         this.FontFamily = '';
 
         // Check page size and orientation
-        if (orientation === '')
+        if (orientation === '') {
             orientation = this.DefOrientation;
-        else
+        } else {
             orientation = strtoupper(orientation);
+        }
 
-        if (size === '')
+        if (size === '') {
             size = this.DefPageSize;
-        else
+        } else {
             size = this._getpagesize(size);
+        }
 
         //fix page info to object
         if (typeof this.PageInfo[this.page] === 'undefined') {
@@ -1893,10 +1901,11 @@ module.exports = class FPDF {
                 } else {
                     let l = this.links[pl[4]];
                     let h
-                    if (isset(this.PageInfo[l[0]]['size']))
+                    if (isset(this.PageInfo[l[0]]['size'])) {
                         h = this.PageInfo[l[0]]['size'][1];
-                    else
+                    } else {
                         h = (this.DefOrientation === 'P') ? this.DefPageSize[1] * this.k : this.DefPageSize[0] * this.k;
+                    }
 
                     annots += sprintf('/Dest [%d 0 R /XYZ 0 %.2f null]>>', this.PageInfo[l[0]]['n'], h - l[1] * this.k);
                 }
@@ -2373,9 +2382,9 @@ module.exports = class FPDF {
 
     _putcolorprofile() {
         let icc = file(__dirname + '/sRGB2014.icc');
-        if (!icc)
+        if (!icc) {
             this.Error('Could not load the ICC profile');
-
+        }
         this._newobj();
         this.n_colorprofile = this.n;
         this._put('<<');
@@ -2432,15 +2441,15 @@ module.exports = class FPDF {
         }
 
         let dc = '';
-        if (isset(this.metadata['Author']))
+        if (isset(this.metadata['Author'])) {
             dc += this._getxmpseq('dc:creator', this.metadata['Author']);
-
-        if (isset(this.metadata['Title']))
+        }
+        if (isset(this.metadata['Title'])) {
             dc += this._getxmpalt('dc:title', this.metadata['Title']);
-
-        if (isset(this.metadata['Subject']))
+        }
+        if (isset(this.metadata['Subject'])) {
             dc += this._getxmpalt('dc:description', this.metadata['Subject']);
-
+        }
         let pdfaid = this._getxmpsimple('pdfaid:part', '1');
         pdfaid += this._getxmpsimple('pdfaid:conformance', 'B');
 
@@ -2527,7 +2536,7 @@ module.exports = class FPDF {
         }
 
         //label extension
-        if(this.lLabels){
+        if (this.lLabels) {
             // Disable the page scaling option in the printing dialog
             this._put('/ViewerPreferences <</PrintScaling /None>>');
         }
@@ -2659,14 +2668,15 @@ module.exports = class FPDF {
     }
 
     Rotate(angle, x = -1, y = -1) {
-        if (x == -1)
+        if (x == -1) {
             x = this.x;
-        if (y == -1)
+        }
+        if (y == -1) {
             y = this.y;
-
-        if (this.angle !== 0)
+        }
+        if (this.angle !== 0) {
             this._out('Q');
-
+        }
         this.angle = angle;
         if (angle !== 0) {
             angle *= Math.PI / 180;
@@ -2820,11 +2830,11 @@ module.exports = class FPDF {
         this.SetFontSize(subFontSizeold);
     }
 
-    Set_Font_Size_Label(pt){
-        return _Set_Font_Size_Label,Add_Label(this,pt)
+    Set_Font_Size_Label(pt) {
+        return _Set_Font_Size_Label, Add_Label(this, pt)
     }
 
-    Add_Label(text=''){
-        return _Add_Label(this,text) 
+    Add_Label(text = '') {
+        return _Add_Label(this, text)
     }
 }
