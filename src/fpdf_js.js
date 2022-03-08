@@ -10,7 +10,6 @@ const LineGraph = require('./extends/LineGraph')
 const ShadowCell = require('./extends/ShadowCell')
 const { _Set_Font_Size_Label, _Add_Label, _Set_Format } = require('./extends/labels')
 const { Readable } = require('stream');
-const { match } = require('assert');
 
 module.exports = class FPDF {
     /**
@@ -1160,6 +1159,10 @@ module.exports = class FPDF {
         // Put an image on the page
         if (file === '') {
             this.Error('Image file name is empty');
+        }
+
+        if(!fs.existsSync(file)){
+            this.Error(`Image file does not exist in path  ${file}.`);    
         }
 
         let info
