@@ -101,4 +101,5 @@ pdf.Output('F',`test.pdf`);
 - [x] *Set_Font_Size_Label - establece el tamaño de la fuente de la etiqueta*
 - [x] *Add_Label - Agrega una etiqueta al documento*
 
- **Puedes encontrar ejemplos de uso [aqui](https://github.com/gamalielmendez/node-fpdf/tree/master/test)**
+ #### **Puedes encontrar ejemplos de uso [aqui](https://github.com/gamalielmendez/node-fpdf/tree/master/test)**
+ #### **Utilidad de consola para hacer compatibles tus fuentes [aqui](https://www.npmjs.com/package/makefont_njs)**
