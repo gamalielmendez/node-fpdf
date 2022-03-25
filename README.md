@@ -4,7 +4,7 @@
 [![alt text](https://www.paypalobjects.com/es_XC/MX/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HJT3RJKJ44EWQ&source=url
 )
 ### **Apoyar con brave tokens**
-### ir a repositorio de [GitHub](https://github.com/gamalielmendez/node-fpdf) con el navegador brave
+### ir a repositorio de [GitHub](https://github.com/gamalielmendez/node-fpdf) con el navegador brave y deja una propina
 
 ### **Apoyar proyecto en Patreon**
 [![alt text](https://onlcontent.blob.core.windows.net/images/cimga7b6940b4f4c422180c268a12a6d39d2_ico.png)](https://www.patreon.com/user?u=70304264)
