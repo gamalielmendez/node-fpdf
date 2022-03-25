@@ -28,7 +28,8 @@
     "test19": "node ./test/circle_ellipse.js",
     "test20": "node ./test/DashedRect.js",
     "test21": "node ./test/subWrite.js",
-    "test22": "node ./test/labels_test.js"
+    "test22": "node ./test/labels_test.js",
+    "test23": "node ./test/testsetfont.js"
   },
   "repository": {
     "type": "git",

@@ -1467,7 +1467,7 @@ module.exports = class FPDF {
             obj.subsetted = false;
         }
 
-
+        
         return { ...obj }
     }
 
@@ -2062,6 +2062,7 @@ module.exports = class FPDF {
                 this._put('endobj');
 
             } else if (type === 'Type1' || type === 'TrueType') {
+                
                 // Additional Type1 or TrueType/OpenType font
                 this._newobj();
                 this._put('<</Type /Font');
@@ -2091,21 +2092,20 @@ module.exports = class FPDF {
                 for (let i = 32; i <= 255; i++) {
                     s += cw[chr(i)] + ' ';
                 }
-
+               
                 this._put(s + ']');
                 this._put('endobj');
 
                 // Descriptor
                 this._newobj();
                 s = '<</Type /FontDescriptor /FontName /' + name;
-
-                //foreach($font['desc'] as $k=>$v)
                 for (const key in font['desc']) {
-                    s += ` /${k} ${v}`
+                    s += ` /${key} ${font['desc'][key]}`
                 }
 
-                if (!font['file']) {
-                    s += ` /FontFile${type === 'Type1' ? '' : '2'} ${this.FontFiles[font['file']]['n']} 0 R`
+    
+                if (font['file']) {
+                    s += ' /FontFile'+(type==='Type1' ? '' : '2')+' '+this.FontFiles[font['file']]['n']+' 0 R';
                 }
 
                 this._put(s + '>>');
