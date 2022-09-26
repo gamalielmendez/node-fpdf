@@ -3,27 +3,23 @@ const fs = require('fs')
 
 const sprintf = require('sprintf-js').sprintf
 
-const substr_count = (S, search) => { return S.split(search).length - 1; }
+const substr_count = (str, search) => { return `${str}`.split(search).length - 1 }
 
-const strtolower = (str) => { return str.toLowerCase() }
+const strtolower = (str) => { return `${str}`.toLowerCase() }
 
-const strtoupper = (str) => { return str.toUpperCase() }
+const strtoupper = (str) => { return `${str}`.toUpperCase() }
 
-const str_replace = (searchvalue, newvalue, from) => { return from.replace(searchvalue, newvalue) }
+const str_replace = (searchvalue, newvalue, from) => { return `${from}`.replace(searchvalue, newvalue) }
 
-const strlen = (str) => { 
-    str=`${str}`
-    return str.length 
-}
+const str_contains = (str, contains) => { return `${str}`.includes(contains) }
+
+const strlen = (str) => { return `${str}`.length }
 
 const is_string = (xValue) => { return (typeof xValue === 'string') }
 
 const isset = (xValue) => { return (typeof xValue !== 'undefined') }
 
-const strpos = (str, searchvalue) => { 
-    str=`${str}`
-    return str.indexOf(searchvalue) 
-}
+const strpos = (str, searchvalue) => { return `${str}`.indexOf(searchvalue) }
 
 const substr = (str, start, length=undefined) => {
     str=`${str}`
@@ -569,6 +565,7 @@ module.exports = {
     strtolower,
     strtoupper,
     str_replace,
+    str_contains,
     strlen,
     is_string,
     isset,
