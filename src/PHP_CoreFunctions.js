@@ -443,7 +443,7 @@ const ceil = (value) => {
     return Math.ceil(value)
 }
 
-const max = () => {
+const max = (...argv) => {
     //  discuss at: https://locutus.io/php/max/
     // original by: Onno Marsman (https://twitter.com/onnomarsman)
     //  revised by: Onno Marsman (https://twitter.com/onnomarsman)
@@ -466,7 +466,6 @@ const max = () => {
     var retVal
     var i = 0
     var n = 0
-    var argv = arguments
     var argc = argv.length
     var _obj2Array = function (obj) {
       if (Object.prototype.toString.call(obj) === '[object Array]') {
