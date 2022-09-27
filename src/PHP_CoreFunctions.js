@@ -3,27 +3,23 @@ const fs = require('fs')
 
 const sprintf = require('sprintf-js').sprintf
 
-const substr_count = (S, search) => { return S.split(search).length - 1; }
+const substr_count = (str, search) => { return `${str}`.split(search).length - 1 }
 
-const strtolower = (str) => { return str.toLowerCase() }
+const strtolower = (str) => { return `${str}`.toLowerCase() }
 
-const strtoupper = (str) => { return str.toUpperCase() }
+const strtoupper = (str) => { return `${str}`.toUpperCase() }
 
-const str_replace = (searchvalue, newvalue, from) => { return from.replace(searchvalue, newvalue) }
+const str_replace = (searchvalue, newvalue, from) => { return `${from}`.replace(searchvalue, newvalue) }
 
-const strlen = (str) => { 
-    str=`${str}`
-    return str.length 
-}
+const str_contains = (str, contains) => { return `${str}`.includes(contains) }
+
+const strlen = (str) => { return `${str}`.length }
 
 const is_string = (xValue) => { return (typeof xValue === 'string') }
 
 const isset = (xValue) => { return (typeof xValue !== 'undefined') }
 
-const strpos = (str, searchvalue) => { 
-    str=`${str}`
-    return str.indexOf(searchvalue) 
-}
+const strpos = (str, searchvalue) => { return `${str}`.indexOf(searchvalue) }
 
 const substr = (str, start, length=undefined) => {
     str=`${str}`
@@ -569,11 +565,148 @@ const str_repeat = (str,nAt)=>{
 
 }
 
+const trim = (str,charlist)=>{
+  //  discuss at: https://locutus.io/php/trim/
+  // original by: Kevin van Zonneveld (https://kvz.io)
+  // improved by: mdsjack (https://www.mdsjack.bo.it)
+  // improved by: Alexander Ermolaev (https://snippets.dzone.com/user/AlexanderErmolaev)
+  // improved by: Kevin van Zonneveld (https://kvz.io)
+  // improved by: Steven Levithan (https://blog.stevenlevithan.com)
+  // improved by: Jack
+  //    input by: Erkekjetter
+  //    input by: DxGx
+  // bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
+  //   example 1: trim('    Kevin van Zonneveld    ')
+  //   returns 1: 'Kevin van Zonneveld'
+  //   example 2: trim('Hello World', 'Hdle')
+  //   returns 2: 'o Wor'
+  //   example 3: trim(16, 1)
+  //   returns 3: '6'
+  let whitespace = [
+    ' ',
+    '\n',
+    '\r',
+    '\t',
+    '\f',
+    '\x0b',
+    '\xa0',
+    '\u2000',
+    '\u2001',
+    '\u2002',
+    '\u2003',
+    '\u2004',
+    '\u2005',
+    '\u2006',
+    '\u2007',
+    '\u2008',
+    '\u2009',
+    '\u200a',
+    '\u200b',
+    '\u2028',
+    '\u2029',
+    '\u3000'
+  ].join('')
+  let l = 0
+  let i = 0
+  str += ''
+  if (charlist) {
+    whitespace = (charlist + '').replace(/([[\]().?/*{}+$^:])/g, '$1')
+  }
+  l = str.length
+  for (i = 0; i < l; i++) {
+    if (whitespace.indexOf(str.charAt(i)) === -1) {
+      str = str.substring(i)
+      break
+    }
+  }
+  l = str.length
+  for (i = l - 1; i >= 0; i--) {
+    if (whitespace.indexOf(str.charAt(i)) === -1) {
+      str = str.substring(0, i + 1)
+      break
+    }
+  }
+  return whitespace.indexOf(str.charAt(0)) === -1 ? str : ''
+}
+
+const strrpos = (haystack,needle,offset)=>{
+  //  discuss at: https://locutus.io/php/strrpos/
+  // original by: Kevin van Zonneveld (https://kvz.io)
+  // bugfixed by: Onno Marsman (https://twitter.com/onnomarsman)
+  // bugfixed by: Brett Zamir (https://brett-zamir.me)
+  //    input by: saulius
+  //   example 1: strrpos('Kevin van Zonneveld', 'e')
+  //   returns 1: 16
+  //   example 2: strrpos('somepage.com', '.', false)
+  //   returns 2: 8
+  //   example 3: strrpos('baa', 'a', 3)
+  //   returns 3: false
+  //   example 4: strrpos('baa', 'a', 2)
+  //   returns 4: 2
+  let i = -1
+  if (offset) {
+    i = (haystack + '')
+      .slice(offset)
+      .lastIndexOf(needle) // strrpos' offset indicates starting point of range till end,
+    // while lastIndexOf's optional 2nd argument indicates ending point of range from the beginning
+    if (i !== -1) {
+      i += offset
+    }
+  } else {
+    i = (haystack + '')
+      .lastIndexOf(needle)
+  }
+  return i >= 0 ? i : false
+}
+
+const empty = (mixedVar)=>{
+  //  discuss at: https://locutus.io/php/empty/
+  // original by: Philippe Baumann
+  //    input by: Onno Marsman (https://twitter.com/onnomarsman)
+  //    input by: LH
+  //    input by: Stoyan Kyosev (https://www.svest.org/)
+  // bugfixed by: Kevin van Zonneveld (https://kvz.io)
+  // improved by: Onno Marsman (https://twitter.com/onnomarsman)
+  // improved by: Francesco
+  // improved by: Marc Jansen
+  // improved by: Rafał Kukawski (https://blog.kukawski.pl)
+  //   example 1: empty(null)
+  //   returns 1: true
+  //   example 2: empty(undefined)
+  //   returns 2: true
+  //   example 3: empty([])
+  //   returns 3: true
+  //   example 4: empty({})
+  //   returns 4: true
+  //   example 5: empty({'aFunc' : function () { alert('humpty'); } })
+  //   returns 5: false
+  let undef
+  let key
+  let i
+  let len
+  const emptyValues = [undef, null, false, 0, '', '0']
+  for (i = 0, len = emptyValues.length; i < len; i++) {
+    if (mixedVar === emptyValues[i]) {
+      return true
+    }
+  }
+  if (typeof mixedVar === 'object') {
+    for (key in mixedVar) {
+      if (mixedVar.hasOwnProperty(key)) {
+        return false
+      }
+    }
+    return true
+  }
+  return false
+}
+
 module.exports = {
     substr_count,
     strtolower,
     strtoupper,
     str_replace,
+    str_contains,
     strlen,
     is_string,
     isset,
@@ -606,5 +739,8 @@ module.exports = {
     array_rand,
     ceil,
     max,
-    str_repeat
+    str_repeat,
+    trim,
+    strrpos,
+    empty
 }
