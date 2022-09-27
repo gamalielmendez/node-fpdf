@@ -200,9 +200,14 @@ const hexdec = (hexString) => {
     return parseInt(hexString, 16)
 }
 
-const round = (number) => {
-    return Math.round(number);
+const number_format = (num, decimals = 0, decimal_separator = '.') => {
+  let segments = `${num}`.split('.')
+  num = !segments[1] ? segments[0] : segments.join('.') + '0'.repeat(decimals) + '1'
+
+  return Number.prototype.toFixed.call(+num, decimals).replace('.', decimal_separator) 
 }
+
+const round = (num, decimals = 0) => { return +number_format(num, decimals) }
 
 const fopen= (filename) =>{
     try {
@@ -721,6 +726,7 @@ module.exports = {
     rtrim,
     explode,
     hexdec,
+    number_format,
     round,
     fopen,
     fclose,
