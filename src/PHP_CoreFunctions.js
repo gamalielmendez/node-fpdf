@@ -91,13 +91,13 @@ const ord = (string) => {
     //   example 2: ord('\uD800\uDC00'); // surrogate pair to create a single Unicode character
     //   returns 2: 65536
 
-    var str = string + ''
-    var code = str.charCodeAt(0)
+    let str = string + ''
+    let code = str.charCodeAt(0)
 
     if (code >= 0xD800 && code <= 0xDBFF) {
         // High surrogate (could change last hex to 0xDB7F to treat
         // high private surrogates as single characters)
-        var hi = code
+        let hi = code
         if (str.length === 1) {
             // This is just a high surrogate with no following low surrogate,
             // so we return its value;
@@ -105,7 +105,7 @@ const ord = (string) => {
             // we could also throw an error as it is not a complete character,
             // but someone may want to know
         }
-        var low = str.charCodeAt(1)
+        let low = str.charCodeAt(1)
         return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000
     }
     if (code >= 0xDC00 && code <= 0xDFFF) {
@@ -168,7 +168,7 @@ const rtrim = (str, chars = ' ') => {
     chars = chars.toString();
 
     // Set vars
-    var letters = str.split(''),
+    let letters = str.split(''),
         i = letters.length - 1;
 
     // Loop letters
@@ -267,7 +267,7 @@ const strtr = (str, from, to) => {
     // *     returns 5: 'http'
     // *     example 6: strtr('aa', {'a':1,'aa':2});
     // *     returns 6: '2'
-    var fr = '',
+    let fr = '',
       i = 0,
       j = 0,
       lenStr = 0,
@@ -276,10 +276,10 @@ const strtr = (str, from, to) => {
       fromTypeStr = '',
       toTypeStr = '',
       istr = '';
-    var tmpFrom = [];
-    var tmpTo = [];
-    var ret = '';
-    var match = false;
+    let tmpFrom = [];
+    let tmpTo = [];
+    let ret = '';
+    let match = false;
    
     // Received replace_pairs?
     // Convert to normal from->to chars
@@ -347,11 +347,11 @@ const strtr = (str, from, to) => {
     //   example 1: array_keys( {firstname: 'Kevin', surname: 'van Zonneveld'} )
     //   returns 1: [ 'firstname', 'surname' ]
   
-    var search = typeof searchValue !== 'undefined'
-    var tmpArr = []
-    var strict = !!argStrict
-    var include = true
-    var key = ''
+    let search = typeof searchValue !== 'undefined'
+    let tmpArr = []
+    let strict = !!argStrict
+    let include = true
+    let key = ''
   
     for (key in input) {
       if (input.hasOwnProperty(key)) {
@@ -387,7 +387,7 @@ const strstr = (haystack, needle, bool) => {
     //   example 4: strstr('name@example.com', '@', true)
     //   returns 4: 'name'
   
-    var pos = 0
+    let pos = 0
   
     haystack += ''
     pos = haystack.indexOf(needle)
@@ -411,7 +411,7 @@ const array_rand = (array, num) =>{ // eslint-disable-line camelcase
   
     // By using Object.keys we support both, arrays and objects
     // which phpjs wants to support
-    var keys = Object.keys(array)
+    let keys = Object.keys(array)
   
     if (typeof num === 'undefined' || num === null) {
       num = 1
@@ -424,10 +424,10 @@ const array_rand = (array, num) =>{ // eslint-disable-line camelcase
     }
   
     // shuffle the array of keys
-    for (var i = keys.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1)) // 0 ≤ j ≤ i
+    for (let i = keys.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1)) // 0 ≤ j ≤ i
   
-      var tmp = keys[j]
+      let tmp = keys[j]
       keys[j] = keys[i]
       keys[i] = tmp
     }
@@ -463,17 +463,17 @@ const max = (...argv) => {
     //   example 6: max([2, 4, 8], [2, 5, 7])
     //   returns 6: [2, 5, 7]
   
-    var ar
-    var retVal
-    var i = 0
-    var n = 0
-    var argc = argv.length
-    var _obj2Array = function (obj) {
+    let ar
+    let retVal
+    let i = 0
+    let n = 0
+    let argc = argv.length
+    let _obj2Array = function (obj) {
       if (Object.prototype.toString.call(obj) === '[object Array]') {
         return obj
       } else {
-        var ar = []
-        for (var i in obj) {
+        let ar = []
+        for (let i in obj) {
           if (obj.hasOwnProperty(i)) {
             ar.push(obj[i])
           }
@@ -481,12 +481,12 @@ const max = (...argv) => {
         return ar
       }
     }
-    var _compare = function (current, next) {
-      var i = 0
-      var n = 0
-      var tmp = 0
-      var nl = 0
-      var cl = 0
+    let _compare = function (current, next) {
+      let i = 0
+      let n = 0
+      let tmp = 0
+      let nl = 0
+      let cl = 0
   
       if (current === next) {
         return 0
