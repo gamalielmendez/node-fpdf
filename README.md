@@ -25,6 +25,14 @@ pdf.SetFont('Arial','B',12);
 pdf.Cell(5,5,"HOLA MUNDO!!");
 pdf.Output('F',`test.pdf`);
 ```` 
+# Como se Usa PHP_CoreFunctions 
+```javascript 
+const {isset} = require('node-fpdf/PHP_CoreFunctions')
+
+console.log(isset(1))
+
+```` 
+
 # **Fuentes Disponibles**
 - [x] courier
 - [x] helvetica
