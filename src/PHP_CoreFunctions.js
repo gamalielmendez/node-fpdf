@@ -182,11 +182,7 @@ const rtrim = (str, chars = ' ') => {
 
 };
 
-const explode = (search, from) => {
-
-    return from.split(search)
-
-}
+const explode = (search, from) => { return `${from}`.split(`${search}`) }
 
 const hexdec = (hexString) => {
     //  discuss at: https://locutus.io/php/hexdec/
@@ -237,8 +233,11 @@ const fseek = (f,n,position='SEEK_CUR') =>{
     return read
 }
 
-const file_get_contents = ()=>{
+const file_exists = (filename)=>{ return fs.existsSync(filename) }
 
+const file_get_contents = (filename)=>{
+    // discuss at: https://locutus.io/php/file_get_contents/
+    return fs.readFileSync(filename, 'utf-8')
 }
 
 const strtr = (str, from, to) => {
@@ -731,6 +730,7 @@ module.exports = {
     fclose,
     fread,
     fseek,
+    file_exists,
     file_get_contents,
     strtr,
     array_keys,
