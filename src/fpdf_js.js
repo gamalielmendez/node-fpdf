@@ -26,7 +26,7 @@ module.exports = class FPDF {
 
         // Initialization of properties
         this.FPDF_VERSION = '1.82'
-        this.AliasNbPages = ''
+        this.AliasNbPages_ = ''
         this.state = 0;
         this.page = 0;
         this.n = 2;
@@ -285,7 +285,7 @@ module.exports = class FPDF {
 
     AliasNbPages(alias = '{nb}') {
         // Define an alias for total number of pages
-        this.AliasNbPages = alias;
+        this.AliasNbPages_ = alias;
     }
 
     Close() {
@@ -1925,8 +1925,8 @@ module.exports = class FPDF {
         this._put(`/Contents ${(this.n + 1)} 0 R>>`);
         this._put('endobj');
         // Page content
-        if (this.AliasNbPages) {
-            this.pages[n] = str_replace(this.AliasNbPages, this.page, this.pages[n]);
+        if (this.AliasNbPages_) {
+            this.pages[n] = str_replace(this.AliasNbPages_, this.page, this.pages[n]);
         }
 
         this._putstreamobject(this.pages[n]);
