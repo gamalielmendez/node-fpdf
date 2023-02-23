@@ -1,3 +1,5 @@
+![GitHub Sponsor](https://img.shields.io/github/sponsors/gamalielmendez?label=Sponsor&logo=GitHub)
+[![](https://img.shields.io/static/v1?label=Sponsor&message=%E2%9D%A4&logo=GitHub&color=%23fe8e86)](https://github.com/sponsors/gamalielmendez)
 # node-fpdf
 ### port de la libreria FPDF de PHP a Javascript totalmente compatible con la libreria original Puedes encontar  proyecto y documentacion original [aqui](http://www.fpdf.org/)
 ### **Apoyar el proyecto con paypal**
