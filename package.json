@@ -3,6 +3,10 @@
   "version": "1.0.43",
   "description": "port de la libreria de FPDF de PHP",
   "main": "index.js",
+  "files": [
+    "PHP_CoreFunctions.js",
+    "src"
+  ],
   "directories": {
     "test": "test"
   },
