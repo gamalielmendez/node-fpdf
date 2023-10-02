@@ -25,7 +25,7 @@ module.exports = class FPDF {
     constructor(orientation = 'P', unit = 'mm', size = 'A4', PDFA = false, posX = 1, posY = 1) {
 
         // Initialization of properties
-        this.FPDF_VERSION = '1.82'
+        this.FPDF_VERSION = '1.86'
         this.AliasNbPages_ = ''
         this.state = 0;
         this.page = 0;
@@ -524,7 +524,7 @@ module.exports = class FPDF {
         this._out(sprintf('%.2f %.2f %.2f %.2f re %s', x * this.k, (this.h - y) * this.k, w * this.k, -h * this.k, op));
     }
 
-    AddFont(family, style = '', file = '') {
+    AddFont(family, style = '', file = '',dir='') {
         // Add a TrueType, OpenType or Type1 font
         family = strtolower(family);
         if (file === '') {
@@ -541,10 +541,24 @@ module.exports = class FPDF {
             return;
         }
 
-        const info = this._loadfont(file);
+        if (strpos(file, '/') !== -1 || strpos(file, "\\") !== -1) {
+            this.Error(`Incorrect font definition file name: ${file}`);
+        }
+        
+        if(dir===''){
+		    dir = this.fontpath;
+        }
+        
+        if(!dir.endsWith('/') && !dir.endsWith('\\')){
+		    dir += '/'
+        }
+
+        const info = this._loadfont(dir+file);
         info['i'] = count(this.fonts) + 1;
 
         if (info['file']) {
+
+            info['file'] = dir+info['file'];
             // Embedded font
             if (info['type'] === 'TrueType') {
                 this.FontFiles[info['file']] = { length1: info['originalsize'] }
@@ -1449,11 +1463,11 @@ module.exports = class FPDF {
 
     _loadfont(font) {
         // Load a font definition file from the font directory
-        if (strpos(font, '/') !== -1 || strpos(font, "\\") !== -1) {
-            this.Error(`Incorrect font definition file name: ${font}`);
-        }
+        //if (strpos(font, '/') !== -1 || strpos(font, "\\") !== -1) {
+        //    this.Error(`Incorrect font definition file name: ${font}`);
+        //}
 
-        const obj = require(this.fontpath + font);
+        const obj = require(font);
 
         if (!isset(obj.name)) {
             this.Error('Could not include font definition file');
@@ -1973,10 +1987,13 @@ module.exports = class FPDF {
 
             // Font file embedding
             const info = this.FontFiles[key]
+            const file=info['file']
+        
             this._newobj()
             this.FontFiles[key]['n'] = this.n
-            let font = fs.readFileSync(this.fontpath + key);
-
+            //let font = fs.readFileSync(this.fontpath + key);
+            let font = fs.readFileSync(file);
+            
             if (!font) {
                 this.Error('Font file not found: ' + file)
             }
@@ -2834,7 +2851,7 @@ module.exports = class FPDF {
     }
 
     Set_Font_Size_Label(pt) {
-        return _Set_Font_Size_Label, Add_Label(this, pt)
+        return _Set_Font_Size_Label(this, pt)
     }
 
     Add_Label(text = '') {
