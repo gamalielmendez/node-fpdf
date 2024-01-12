@@ -1,4 +1,32 @@
-const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: fpdf_js.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: fpdf_js.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, isset, in_array, strpos, substr, method_exists,
     chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress, file, str_repeat } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
@@ -237,7 +265,7 @@ class FPDF {
     SetLeftMargin(margin) {
         // Set left margin
         this.lMargin = margin;
-        if (this.page > 0 && this.x < margin) {
+        if (this.page > 0 &amp;&amp; this.x &lt; margin) {
             this.x = margin;
         }
 
@@ -516,10 +544,10 @@ class FPDF {
 
         this.SetDrawColor(204, 255, 255);
         this.SetLineWidth(0.35);
-        for (let i = 0; i < this.w; i += spacing) {
+        for (let i = 0; i &lt; this.w; i += spacing) {
             this.Line(i, 0, i, this.h);
         }
-        for (let i = 0; i < this.h; i += spacing) {
+        for (let i = 0; i &lt; this.h; i += spacing) {
             this.Line(0, i, this.w, i);
         }
 
@@ -529,11 +557,11 @@ class FPDF {
         let y = this.GetY();
         this.SetFont('Arial', 'I', 8);
         this.SetTextColor(204, 204, 204);
-        for (let i = 20; i < this.h; i += 20) {
+        for (let i = 20; i &lt; this.h; i += 20) {
             this.SetXY(1, i - 3);
             this.Write(4, `${i}`);
         }
-        for (let i = 20; i < ((this.w) - (this.rMargin) - 10); i += 20) {
+        for (let i = 20; i &lt; ((this.w) - (this.rMargin) - 10); i += 20) {
             this.SetXY(i - 1, 1);
             this.Write(4, `${i}`);
         }
@@ -573,7 +601,7 @@ class FPDF {
      */
     SetDrawColor(r, g = null, b = null) {
         // Set color for all stroking operations
-        if ((r === 0 && g === 0 && b === 0) || g === null) {
+        if ((r === 0 &amp;&amp; g === 0 &amp;&amp; b === 0) || g === null) {
             this.DrawColor = sprintf('%.3f G', r / 255);
 
         } else {
@@ -599,7 +627,7 @@ class FPDF {
      */
     SetFillColor(r, g = null, b = null) {
         // Set color for all filling operations
-        if ((r == 0 && g == 0 && b == 0) || g === null) {
+        if ((r == 0 &amp;&amp; g == 0 &amp;&amp; b == 0) || g === null) {
             this.FillColor = sprintf('%.3f g', r / 255);
         } else {
             this.FillColor = sprintf('%.3f %.3f %.3f rg', r / 255, g / 255, b / 255);
@@ -625,7 +653,7 @@ class FPDF {
      */
     SetTextColor(r, g = null, b = null) {
         // Set color for text
-        if ((r == 0 && g == 0 && b == 0) || g === null) {
+        if ((r == 0 &amp;&amp; g == 0 &amp;&amp; b == 0) || g === null) {
             this.TextColor = sprintf('%.3f g', r / 255);
         } else {
             this.TextColor = sprintf('%.3f %.3f %.3f rg', r / 255, g / 255, b / 255);
@@ -648,7 +676,7 @@ class FPDF {
         let w = 0;
         let l = strlen(s);
 
-        for (let i = 0; i < l; i++) {
+        for (let i = 0; i &lt; l; i++) {
             w += cw[s.charAt(i)];
         }
 
@@ -752,7 +780,7 @@ class FPDF {
             dir = this.fontpath;
         }
 
-        if (!dir.endsWith('/') && !dir.endsWith('\\')) {
+        if (!dir.endsWith('/') &amp;&amp; !dir.endsWith('\\')) {
             dir += '/'
         }
 
@@ -808,7 +836,7 @@ class FPDF {
         }
 
         // Test if font is already selected
-        if (this.FontFamily === family && this.FontStyle === style && this.FontSizePt === size) {
+        if (this.FontFamily === family &amp;&amp; this.FontStyle === style &amp;&amp; this.FontSizePt === size) {
             return;
         }
         // Test if font is already loaded
@@ -933,7 +961,7 @@ class FPDF {
         }
 
         let s = sprintf('BT %.2f %.2f Td (%s) Tj ET', x * this.k, (this.h - y) * this.k, this._escape(txt));
-        if (this.underline && txt !== '') {
+        if (this.underline &amp;&amp; txt !== '') {
             s += ` ${this._dounderline(x, y, txt)}`;
         }
 
@@ -976,7 +1004,7 @@ class FPDF {
         txt = `${txt}`
         // Output a cell
         let k = this.k;
-        if (this.y + h > this.PageBreakTrigger && !this.InHeader && !this.InFooter && this.AcceptPageBreak()) {
+        if (this.y + h > this.PageBreakTrigger &amp;&amp; !this.InHeader &amp;&amp; !this.InFooter &amp;&amp; this.AcceptPageBreak()) {
             // Automatic page break
             let x = this.x;
             let ws = this.ws;
@@ -1115,7 +1143,7 @@ class FPDF {
         let s = str_replace("\r", '', txt);
         let nb = strlen(s);
 
-        if (nb > 0 && s.charAt(nb - 1) === "\n") {
+        if (nb > 0 &amp;&amp; s.charAt(nb - 1) === "\n") {
             nb--;
         }
 
@@ -1145,7 +1173,7 @@ class FPDF {
         let ns = 0;
         let nl = 1;
         let ls
-        while (i < nb) {
+        while (i &lt; nb) {
             // Get next character
             let c = s.charAt(i);
 
@@ -1163,7 +1191,7 @@ class FPDF {
                 l = 0;
                 ns = 0;
                 nl++;
-                if (border && nl === 2) {
+                if (border &amp;&amp; nl === 2) {
                     b = b2;
                 }
 
@@ -1209,7 +1237,7 @@ class FPDF {
                 ns = 0;
                 nl++;
 
-                if (border && nl === 2) {
+                if (border &amp;&amp; nl === 2) {
                     b = b2;
                 }
 
@@ -1225,7 +1253,7 @@ class FPDF {
             this._out('0 Tw');
         }
 
-        if (border && strpos(border, 'B') !== -1) {
+        if (border &amp;&amp; strpos(border, 'B') !== -1) {
             b += 'B';
         }
 
@@ -1264,7 +1292,7 @@ class FPDF {
         let nl = 1;
         let c = '';
 
-        while (i < nb) {
+        while (i &lt; nb) {
             // Get next character
             c = s.charAt(i);
 
@@ -1498,18 +1526,18 @@ class FPDF {
             Pointilles = (hauteur / nb) / 2;
         }
 
-        for (let i = x1; i <= x2; i += Pointilles + Pointilles) {
-            for (let j = i; j <= (i + Pointilles); j++) {
-                if (j <= (x2 - 1)) {
+        for (let i = x1; i &lt;= x2; i += Pointilles + Pointilles) {
+            for (let j = i; j &lt;= (i + Pointilles); j++) {
+                if (j &lt;= (x2 - 1)) {
                     this.Line(j, y1, j + 1, y1); // upper dashes
                     this.Line(j, y2, j + 1, y2); // lower dashes
                 }
             }
         }
 
-        for (let i = y1; i <= y2; i += Pointilles + Pointilles) {
-            for (let j = i; j <= (i + Pointilles); j++) {
-                if (j <= (y2 - 1)) {
+        for (let i = y1; i &lt;= y2; i += Pointilles + Pointilles) {
+            for (let j = i; j &lt;= (i + Pointilles); j++) {
+                if (j &lt;= (y2 - 1)) {
                     this.Line(x1, j, x1, j + 1); // left dashes
                     this.Line(x2, j, x2, j + 1); // right dashes
                 }
@@ -1581,20 +1609,20 @@ class FPDF {
         }
 
         // Automatic width and height calculation if needed
-        if (w === 0 && h === 0) {
+        if (w === 0 &amp;&amp; h === 0) {
             // Put image at 96 dpi
             w = -96;
             h = -96;
         }
 
-        if (w < 0) { w = -info['w'] * 72 / w / this.k; }
-        if (h < 0) { h = -info['h'] * 72 / h / this.k; }
+        if (w &lt; 0) { w = -info['w'] * 72 / w / this.k; }
+        if (h &lt; 0) { h = -info['h'] * 72 / h / this.k; }
         if (w === 0) { w = h * info['w'] / info['h']; }
         if (h === 0) { h = w * info['h'] / info['w']; }
 
         // Flowing mode
         if (y === null) {
-            if (this.y + h > this.PageBreakTrigger && !this.InHeader && !this.InFooter && this.AcceptPageBreak()) {
+            if (this.y + h > this.PageBreakTrigger &amp;&amp; !this.InHeader &amp;&amp; !this.InFooter &amp;&amp; this.AcceptPageBreak()) {
                 // Automatic page break
                 let x2 = this.x;
                 this.AddPage(this.CurOrientation, this.CurPageSize, this.CurRotation);
@@ -1712,7 +1740,7 @@ class FPDF {
     Output(dest = 'F', name = 'doc.pdf', isUTF8 = false) {
         // Output PDF to some destination
         this.Close();
-        if (strlen(name) === 1 && strlen(dest) !== 1) {
+        if (strlen(name) === 1 &amp;&amp; strlen(dest) !== 1) {
             // Fix parameter order
             let tmp = dest;
             dest = name;
@@ -1903,7 +1931,7 @@ class FPDF {
     _isascii(s) {
         // Test if string is ASCII
         let nb = strlen(s);
-        for (let i = 0; i < nb; i++) {
+        for (let i = 0; i &lt; nb; i++) {
 
             if (ord(s.charAt(i)) > 127) {
                 return false;
@@ -1918,7 +1946,7 @@ class FPDF {
         // Test if string is ASCII
         let nb = strlen(s);
         let res = ''
-        for (let i = 0; i < nb; i++) {
+        for (let i = 0; i &lt; nb; i++) {
 
             let c = s.codePointAt(i)
             res += String.fromCodePoint(c)
@@ -1935,20 +1963,20 @@ class FPDF {
         let nb = strlen(s);
         let i = 0;
 
-        while (i < nb) {
+        while (i &lt; nb) {
             let c1 = ord(s.charAt(i++));
             if (c1 >= 224) {
                 // 3-byte character
                 let c2 = ord(s.charAt(i++));
                 let c3 = ord(s.charAt(i++));
-                res += chr(((c1 & 0x0F) << 4) + ((c2 & 0x3C) >> 2));
-                res += chr(((c2 & 0x03) << 6) + (c3 & 0x3F));
+                res += chr(((c1 &amp; 0x0F) &lt;&lt; 4) + ((c2 &amp; 0x3C) >> 2));
+                res += chr(((c2 &amp; 0x03) &lt;&lt; 6) + (c3 &amp; 0x3F));
 
             } else if (c1 >= 192) {
                 // 2-byte character
                 let c2 = ord(s.charAt(i++));
-                res += chr((c1 & 0x1C) >> 2);
-                res += chr(((c1 & 0x03) << 6) + (c2 & 0x3F));
+                res += chr((c1 &amp; 0x1C) >> 2);
+                res += chr(((c1 &amp; 0x03) &lt;&lt; 6) + (c2 &amp; 0x3F));
 
             } else {
                 // Single-byte character
@@ -2110,7 +2138,7 @@ class FPDF {
 
         } while (n);
 
-        if (colspace == 'Indexed' && !pal) {
+        if (colspace == 'Indexed' &amp;&amp; !pal) {
             this.Error('Missing palette in ' + file);
         }
 
@@ -2130,7 +2158,7 @@ class FPDF {
             if (ct === 4) {
                 // Gray image
                 let len = 2 * w;
-                for (let i = 0; i < h; i++) {
+                for (let i = 0; i &lt; h; i++) {
                     let pos = (1 + len) * i;
                     color += data[pos];
                     alpha += data[pos];
@@ -2143,7 +2171,7 @@ class FPDF {
             } else {
                 // RGB image
                 let len = 4 * w;
-                for (let i = 0; i < h; i++) {
+                for (let i = 0; i &lt; h; i++) {
                     let pos = (1 + len) * i;
                     color += data[pos]
                     alpha += data[pos]
@@ -2160,7 +2188,7 @@ class FPDF {
             data = gzcompress(color);
             info['smask'] = gzcompress(alpha);
             this.WithAlpha = true;
-            if (this.PDFVersion < '1.4') {
+            if (this.PDFVersion &lt; '1.4') {
                 this.PDFVersion = '1.4';
             }
 
@@ -2299,14 +2327,14 @@ class FPDF {
 
         entries += `/Length ${Result.length}`;
         this._newobj();
-        this._put(`<<${entries}>>`);
+        this._put(`&lt;&lt;${entries}>>`);
         this._putstream(Result);
         this._put('endobj');
     }
 
     _putpage(n) {
         this._newobj();
-        this._put('<</Type /Page');
+        this._put('&lt;&lt;/Type /Page');
         this._put('/Parent 1 0 R');
 
         if (isset(this.PageInfo[n]['size'])) {
@@ -2326,10 +2354,10 @@ class FPDF {
             this.PageLinks[`${n}`].forEach((pl, i) => {
 
                 let rect = sprintf('%.2f %.2f %.2f %.2f', pl[0], pl[1], pl[0] + pl[2], pl[1] - pl[3]);
-                annots += `<</Type /Annot /Subtype /Link /Rect [${rect}] /Border [0 0 0] `;
+                annots += `&lt;&lt;/Type /Annot /Subtype /Link /Rect [${rect}] /Border [0 0 0] `;
 
                 if (is_string(pl[4])) {
-                    annots += `/A <</S /URI /URI ${this._textstring(pl[4])}>>>>`;
+                    annots += `/A &lt;&lt;/S /URI /URI ${this._textstring(pl[4])}>>>>`;
                 } else {
                     let l = this.links[pl[4]];
                     let h
@@ -2347,7 +2375,7 @@ class FPDF {
         }
 
         if (this.WithAlpha) {
-            this._put('/Group <</Type /Group /S /Transparency /CS /DeviceRGB>>');
+            this._put('/Group &lt;&lt;/Type /Group /S /Transparency /CS /DeviceRGB>>');
         }
 
 
@@ -2363,19 +2391,19 @@ class FPDF {
 
     _putpages() {
         let nb = this.page;
-        for (let n = 1; n <= nb; n++) {
+        for (let n = 1; n &lt;= nb; n++) {
             this.PageInfo[n]['n'] = this.n + 1 + 2 * (n - 1);
         }
 
-        for (let n = 1; n <= nb; n++) {
+        for (let n = 1; n &lt;= nb; n++) {
             this._putpage(n);
         }
 
         // Pages root
         this._newobj(1);
-        this._put('<</Type /Pages');
+        this._put('&lt;&lt;/Type /Pages');
         let kids = '/Kids [';
-        for (let n = 1; n <= nb; n++) {
+        for (let n = 1; n &lt;= nb; n++) {
             kids += `${this.PageInfo[n]['n']} 0 R `;
         }
 
@@ -2413,10 +2441,10 @@ class FPDF {
                 this.Error('Font file not found: ' + file)
             }
             let compressed = (substr(key, -2) == '.z')
-            if (!compressed && isset(info['length2'])) {
+            if (!compressed &amp;&amp; isset(info['length2'])) {
                 font = substr(font, 6, info['length1']).substr(font, 6 + info['length1'] + 6, info['length2']);
             }
-            this._put(`<</Length ${strlen(font)}`)
+            this._put(`&lt;&lt;/Length ${strlen(font)}`)
             if (compressed) {
                 this._put('/Filter /FlateDecode');
             }
@@ -2442,7 +2470,7 @@ class FPDF {
                 if (!isset(this.encodings[font['enc']])) {
 
                     this._newobj();
-                    this._put(`<</Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${font['diff']}]>>`);
+                    this._put(`&lt;&lt;/Type /Encoding /BaseEncoding /WinAnsiEncoding /Differences [${font['diff']}]>>`);
                     this._put('endobj');
                     this.encodings[font['enc']] = this.n;
                 }
@@ -2478,11 +2506,11 @@ class FPDF {
             if (type == 'Core') {
                 // Core font
                 this._newobj();
-                this._put('<</Type /Font');
+                this._put('&lt;&lt;/Type /Font');
                 this._put('/BaseFont /' + name);
                 this._put('/Subtype /Type1');
 
-                if (name !== 'Symbol' && name !== 'ZapfDingbats') {
+                if (name !== 'Symbol' &amp;&amp; name !== 'ZapfDingbats') {
                     this._put('/Encoding /WinAnsiEncoding');
                 }
 
@@ -2497,7 +2525,7 @@ class FPDF {
 
                 // Additional Type1 or TrueType/OpenType font
                 this._newobj();
-                this._put('<</Type /Font');
+                this._put('&lt;&lt;/Type /Font');
                 this._put(`/BaseFont /${name}`);
                 this._put(`/Subtype /${type}`);
                 this._put('/FirstChar 32 /LastChar 255');
@@ -2521,7 +2549,7 @@ class FPDF {
                 let cw = font['cw']
                 s = '['
 
-                for (let i = 32; i <= 255; i++) {
+                for (let i = 32; i &lt;= 255; i++) {
                     s += cw[chr(i)] + ' ';
                 }
 
@@ -2530,7 +2558,7 @@ class FPDF {
 
                 // Descriptor
                 this._newobj();
-                s = '<</Type /FontDescriptor /FontName /' + name;
+                s = '&lt;&lt;/Type /FontDescriptor /FontName /' + name;
                 for (const key in font['desc']) {
                     s += ` /${key} ${font['desc'][key]}`
                 }
@@ -2567,10 +2595,10 @@ class FPDF {
             let v = uv[key]
 
             if (is_array(v)) {
-                ranges += sprintf("<%02X> <%02X> <%04X>\n", key, key + v[1] - 1, v[0]);
+                ranges += sprintf("&lt;%02X> &lt;%02X> &lt;%04X>\n", key, key + v[1] - 1, v[0]);
                 nbr++;
             } else {
-                chars += sprintf("<%02X> <%04X>\n", key, v);
+                chars += sprintf("&lt;%02X> &lt;%04X>\n", key, v);
                 nbc++;
             }
 
@@ -2580,14 +2608,14 @@ class FPDF {
         s += "12 dict begin\n";
         s += "begincmap\n";
         s += "/CIDSystemInfo\n";
-        s += "<</Registry (Adobe)\n";
+        s += "&lt;&lt;/Registry (Adobe)\n";
         s += "/Ordering (UCS)\n";
         s += "/Supplement 0\n";
         s += ">> def\n";
         s += "/CMapName /Adobe-Identity-UCS def\n";
         s += "/CMapType 2 def\n";
         s += "1 begincodespacerange\n";
-        s += "<00> <FF>\n";
+        s += "&lt;00> &lt;FF>\n";
         s += "endcodespacerange\n";
 
         if (nbr > 0) {
@@ -2628,7 +2656,7 @@ class FPDF {
 
         info['n'] = this.n;
 
-        this._put('<</Type /XObject');
+        this._put('&lt;&lt;/Type /XObject');
         this._put('/Subtype /Image');
         this._put(`/Width ${info['w']}`);
         this._put(`/Height ${info['h']}`);
@@ -2648,13 +2676,13 @@ class FPDF {
         }
 
         if (isset(info['dp'])) {
-            this._put(`/DecodeParms <<${info['dp']}>>`);
+            this._put(`/DecodeParms &lt;&lt;${info['dp']}>>`);
         }
 
-        if (isset(info['trns']) && is_array(info['trns'])) {
+        if (isset(info['trns']) &amp;&amp; is_array(info['trns'])) {
 
             let trns = '';
-            for (let i = 0; i < count(info['trns']); i++) {
+            for (let i = 0; i &lt; count(info['trns']); i++) {
                 trns += ` ${info['trns'][i]} ${info['trns'][i]} `;
             }
 
@@ -2694,7 +2722,7 @@ class FPDF {
 
     _putresourcedict() {
         this._put('/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]');
-        this._put('/Font <<');
+        this._put('/Font &lt;&lt;');
 
         for (const key in this.fonts) {
             const font = this.fonts[key]
@@ -2702,7 +2730,7 @@ class FPDF {
         }
 
         this._put('>>');
-        this._put('/XObject <<');
+        this._put('/XObject &lt;&lt;');
         this._putxobjectdict();
         this._put('>>');
     }
@@ -2712,12 +2740,12 @@ class FPDF {
 
         this._newobj();
         this.n_js = this.n;
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._put(`/Names [(EmbeddedJS) ${this.n + 1} 0 R]`);
         this._put('>>');
         this._put('endobj');
         this._newobj();
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._put('/S /JavaScript');
         this._put(`/JS ${this._textstring(this.javascript)}`);
         this._put('>>');
@@ -2753,7 +2781,7 @@ class FPDF {
                 this.outlines[i]['parent'] = nb;
             }
 
-            if (o['l'] <= level && i > 0) {
+            if (o['l'] &lt;= level &amp;&amp; i > 0) {
                 // Set prev and next pointers
                 let prev = lru[o['l']];
                 this.outlines[prev]['next'] = i;
@@ -2769,7 +2797,7 @@ class FPDF {
         let n = this.n + 1;
         this.outlines.forEach((o, i) => {
             this._newobj();
-            this._put(`<</Title ${this._textstring(o['t'])}`);
+            this._put(`&lt;&lt;/Title ${this._textstring(o['t'])}`);
             this._put(`/Parent ${(n + o['parent'])} 0 R`);
 
             if (isset(o['prev'])) { this._put(`/Prev ${(n + o['prev'])} 0 R`); }
@@ -2785,7 +2813,7 @@ class FPDF {
         // Outline root
         this._newobj();
         this.outlineRoot = this.n;
-        this._put(`<</Type /Outlines /First ${n} 0 R`);
+        this._put(`&lt;&lt;/Type /Outlines /First ${n} 0 R`);
         this._put(`/Last ${(n + lru[0])} 0 R>>`);
         this._put('endobj');
 
@@ -2798,7 +2826,7 @@ class FPDF {
         this._putimages();
         // Resource dictionary
         this._newobj(2);
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._putresourcedict();
         this._put('>>');
         this._put('endobj');
@@ -2822,7 +2850,7 @@ class FPDF {
         }
         this._newobj();
         this.n_colorprofile = this.n;
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._put('/Length ' + strlen(icc));
         this._put('/N 3');
         this._put('>>');
@@ -2831,22 +2859,22 @@ class FPDF {
     }
 
     _getxmpdescription(alias, ns, body) {
-        return sprintf("\t<rdf:Description rdf:about=\"\" xmlns:%s=\"%s\">\n%s\t</rdf:Description>\n", alias, ns, body);
+        return sprintf("\t&lt;rdf:Description rdf:about=\"\" xmlns:%s=\"%s\">\n%s\t&lt;/rdf:Description>\n", alias, ns, body);
     }
 
     _getxmpsimple(tag, value) {
         value = this.escapeHtml(value);
-        return sprintf("\t\t<%s>%s</%s>\n", tag, value, tag);
+        return sprintf("\t\t&lt;%s>%s&lt;/%s>\n", tag, value, tag);
     }
 
     _getxmpseq(tag, value) {
         value = this.escapeHtml(value);
-        return sprintf("\t\t<%s>\n\t\t\t<rdf:Seq>\n\t\t\t\t<rdf:li>%s</rdf:li>\n\t\t\t</rdf:Seq>\n\t\t</%s>\n", tag, value, tag);
+        return sprintf("\t\t&lt;%s>\n\t\t\t&lt;rdf:Seq>\n\t\t\t\t&lt;rdf:li>%s&lt;/rdf:li>\n\t\t\t&lt;/rdf:Seq>\n\t\t&lt;/%s>\n", tag, value, tag);
     }
 
     _getxmpalt(tag, value) {
         value = this.escapeHtml(value);
-        return sprintf("\t\t<%s>\n\t\t\t<rdf:Alt>\n\t\t\t\t<rdf:li xml:lang=\"x-default\">%s</rdf:li>\n\t\t\t</rdf:Alt>\n\t\t</%s>\n", tag, value, tag);
+        return sprintf("\t\t&lt;%s>\n\t\t\t&lt;rdf:Alt>\n\t\t\t\t&lt;rdf:li xml:lang=\"x-default\">%s&lt;/rdf:li>\n\t\t\t&lt;/rdf:Alt>\n\t\t&lt;/%s>\n", tag, value, tag);
     }
 
     /**
@@ -2854,20 +2882,20 @@ class FPDF {
      * their corresponding HTML entities.
      * @param text - The `text` parameter is a string that represents the text that needs to be escaped.
      * @returns The function `escapeHtml` returns the input `text` with certain characters escaped.
-     * Specifically, it replaces the characters `&`, `<`, `>`, `"`, and `'` with their corresponding HTML
-     * entities `&amp;`, `&lt;`, `&gt;`, `&quot;`, and `&#039;` respectively.
+     * Specifically, it replaces the characters `&amp;`, `&lt;`, `>`, `"`, and `'` with their corresponding HTML
+     * entities `&amp;amp;`, `&amp;lt;`, `&amp;gt;`, `&amp;quot;`, and `&amp;#039;` respectively.
      */
     escapeHtml(text) {
 
         var map = {
-            '&': '&amp;',
-            '<': '&lt;',
-            '>': '&gt;',
-            '"': '&quot;',
-            "'": '&#039;'
+            '&amp;': '&amp;amp;',
+            '&lt;': '&amp;lt;',
+            '>': '&amp;gt;',
+            '"': '&amp;quot;',
+            "'": '&amp;#039;'
         };
 
-        return text.replace(/[&<>"']/g, function (m) { return map[m]; });
+        return text.replace(/[&amp;&lt;>"']/g, function (m) { return map[m]; });
     }
 
     _putmetadata() {
@@ -2896,8 +2924,8 @@ class FPDF {
         let pdfaid = this._getxmpsimple('pdfaid:part', '1');
         pdfaid += this._getxmpsimple('pdfaid:conformance', 'B');
 
-        let s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>' + "\n";
-        s += '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">' + "\n";
+        let s = '&lt;?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>' + "\n";
+        s += '&lt;rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">' + "\n";
         s += this._getxmpdescription('pdf', 'http://ns.adobe.com/pdf/1.3/', pdf);
         s += this._getxmpdescription('xmp', 'http://ns.adobe.com/xap/1.0/', xmp);
 
@@ -2906,12 +2934,12 @@ class FPDF {
         }
 
         s += this._getxmpdescription('pdfaid', 'http://www.aiim.org/pdfa/ns/id/', pdfaid);
-        s += '</rdf:RDF>' + "\n";
-        s += '<?xpacket end="r"?>';
+        s += '&lt;/rdf:RDF>' + "\n";
+        s += '&lt;?xpacket end="r"?>';
 
         this._newobj();
         this.n_metadata = this.n;
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._put('/Type /Metadata');
         this._put('/Subtype /XML');
         this._put('/Length ' + strlen(s));
@@ -2970,7 +2998,7 @@ class FPDF {
         }
 
         if (this.javascript) {
-            this._put(`/Names <</JavaScript ${this.n_js} 0 R>>`);
+            this._put(`/Names &lt;&lt;/JavaScript ${this.n_js} 0 R>>`);
         }
 
         if (count(this.outlines) > 0) {
@@ -2981,12 +3009,12 @@ class FPDF {
         //label extension
         if (this.lLabels) {
             // Disable the page scaling option in the printing dialog
-            this._put('/ViewerPreferences <</PrintScaling /None>>');
+            this._put('/ViewerPreferences &lt;&lt;/PrintScaling /None>>');
         }
 
         if (this.PDFA) {
 
-            let oi = '<</Type /OutputIntent /S /GTS_PDFA1 '
+            let oi = '&lt;&lt;/Type /OutputIntent /S /GTS_PDFA1 '
             oi += '/OutputConditionIdentifier (sRGB2014.icc) /Info (sRGB2014.icc) /RegistryName (http://www.color.org) '
             oi += `/DestOutputProfile ${this.n_colorprofile} 0 R>>`;
 
@@ -3070,13 +3098,13 @@ class FPDF {
         this._putresources();
         // Info
         this._newobj();
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._putinfo();
         this._put('>>');
         this._put('endobj');
         // Catalog
         this._newobj();
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._putcatalog();
         this._put('>>');
         this._put('endobj');
@@ -3086,13 +3114,13 @@ class FPDF {
         this._put(`0 ${this.n + 1}`);
         this._put('0000000000 65535 f ');
 
-        for (let i = 1; i <= this.n; i++) {
+        for (let i = 1; i &lt;= this.n; i++) {
             this._put(sprintf('%010d 00000 n ', this.offsets[i]));
         }
 
         // Trailer
         this._put('trailer');
-        this._put('<<');
+        this._put('&lt;&lt;');
         this._puttrailer();
         this._put('>>');
         this._put('startxref');
@@ -3314,7 +3342,7 @@ class FPDF {
      */
     CreateIndexFromBookmark(cTitle = "Index", CreateLinks = false, CustomHeaderCallBack) {
 
-        if (this.outlines.length <= 0) {
+        if (this.outlines.length &lt;= 0) {
             return
         }
 
@@ -3333,7 +3361,7 @@ class FPDF {
 
         let size = this.outlines.length - 1
         let PageCellSize = this.GetStringWidth(`p. ${this.outlines[size - 1]['p']}`) + 2;
-        for (let i = 0; i < size; i++) {
+        for (let i = 0; i &lt; size; i++) {
 
             //Offset
             let level = this.outlines[i]['l'];
@@ -3453,4 +3481,26 @@ class FPDF {
     }
 }
 
-module.exports = FPDF
+module.exports = FPDF</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="FPDF.html">FPDF</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.2</a> on Fri Jan 12 2024 11:53:55 GMT-0600 (hora estándar central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
