@@ -20,7 +20,7 @@ const LoadGif = (src) => {
 
   const gifFile = parseGif(src)
 
-  const descompresed_frames = decompressFrames(gifFile, true)
+  const descompresed_frames = decompressFrames(gifFile, false)
 
   //toma el primer frame para tratar 1de convertirlo a png
   const frame = descompresed_frames[0]
@@ -36,7 +36,10 @@ const writePng = (frame) => {
   // Crear un nuevo PNG
   const png = new PNG({
     width: frame.dims.width,
-    height: frame.dims.height
+    height: frame.dims.height,
+    colorType: 6,
+    inputColorType: 6,
+    inputHasAlpha: true,
   });
 
   // Convertir los datos del frame a RGBA y llenar el PNG
@@ -49,17 +52,18 @@ const writePng = (frame) => {
       png.data[idx] = color.red;     // R
       png.data[idx + 1] = color.green; // G
       png.data[idx + 2] = color.blue; // B
-      png.data[idx + 3] = 255;      // A
+      png.data[idx + 3] = colorIndex!==frame.transparentIndex? 255:0 // A
+
     }
   }
 
   // Guardar el PNG
   const buffer = PNG.sync.write(png, {
-    bitDepth: 8,
-    colorType: 2
+    colorType: 2,
+    inputColorType:6,
   });
 
-  fs.writeFileSync('output.png', buffer);
+  //fs.writeFileSync('output.png', buffer);
   return buffer
 }
 
@@ -77,17 +81,20 @@ const decompressFrames = (parsedGif, buildImagePatch) => {
 const generatePatch = image => {
   const totalPixels = image.pixels.length
   const patchData = new Uint8ClampedArray(totalPixels * 4)
-  for (var i = 0; i < totalPixels; i++) {
+
+  for (let i = 0; i < totalPixels; i++) {
     const pos = i * 4
     const colorIndex = image.pixels[i]
-    const color = image.colorTable[colorIndex] || [0, 0, 0]
+    const color = image.colorTable[colorIndex] || {red:0, green:0, blue:0}
 
     patchData[pos] = color.red
     patchData[pos + 1] = color.green
     patchData[pos + 2] = color.blue
     patchData[pos + 3] = colorIndex !== image.transparentIndex ? 255 : 0
+
   }
 
+  //console.log(image.colorTable)
   return patchData
 }
 

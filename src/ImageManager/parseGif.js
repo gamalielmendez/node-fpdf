@@ -60,8 +60,8 @@ const parseGif = (src) => {
         backgroundColorIndex,
         pixelAspectRatio,
         gctColors,
-        frames:framesResult.frames,
-        application:framesResult.application
+        frames: framesResult.frames,
+        application: framesResult.application
     }
 
 }
@@ -128,6 +128,40 @@ const readGCE = (imageReader) => {
     }
 }
 
+const readPlainText = (imageReader) => {
+
+    const byteSize = imageReader.readChunk(1)[0]
+
+    const gridLeft = imageReader.readUInt16dLE()
+    const gridTop = imageReader.readUInt16dLE()
+    const gridWidth = imageReader.readUInt16dLE()
+    const gridHeight = imageReader.readUInt16dLE()
+
+    const cellWidth = imageReader.readChunk(1)[0]
+    const cellHeight = imageReader.readChunk(1)[0]
+    const foregroundColorIndex = imageReader.readChunk(1)[0]
+    const backgroundColorIndex = imageReader.readChunk(1)[0]
+
+    return {
+        byteSize,
+        gridLeft,
+        gridTop,
+        gridWidth,
+        gridHeight,
+        cellWidth,
+        cellHeight,
+        foregroundColorIndex,
+        backgroundColorIndex,
+        subBlocksSchema: subBlocksSchema(imageReader)
+    }
+}
+
+const readComment = (imageReader) => {
+
+    return {
+        subBlocksSchema: subBlocksSchema(imageReader)
+    }
+}
 
 const readLCT = (imageReader, lct) => {
 
@@ -197,10 +231,10 @@ const readFrames = (imageReader) => {
         image: null
     }
 
-    const application=[]
+    const application = []
 
     do {
-        
+
         if (frame.image !== null) {
             frames.push(frame)
             frame = {
@@ -213,11 +247,19 @@ const readFrames = (imageReader) => {
         // Este es un bloque de extensión
         if (code[0] === 0x21) {
 
-            if (code[1] === 0xFF) {
-                application.push(readApplication(imageReader))
-            } else if (code[1] === 0xF9) {
-                frame.gce = readGCE(imageReader)
-                //console.log(frame.gce)
+            switch (code[1]) {
+                case 0xFF:
+                    application.push(readApplication(imageReader))
+                    break;
+                case 0xF9:
+                    frame.gce = readGCE(imageReader)
+                    break;
+                case 0x01:
+                    frame.text = readPlainText(imageReader)
+                    break;
+                case 0xFE:
+                    frame.comment = readComment(imageReader)
+                    break;
             }
 
         } else if (code[0] === 0x2c) {
