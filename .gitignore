@@ -11,6 +11,6 @@ package-lock.json
 *.pdf
 *.jpeg
 *.jpg
-.png
+*.png
 *.gif
 *.ttf

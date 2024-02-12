@@ -1,9 +1,10 @@
 const FPDF = require('../index')
 
 let textColour = [0, 0, 0];
-let logoFile = `${__dirname}/test4.png`;
-let logoXPos = 70;
-let logoYPos = 10;
+//let logoFile = `${__dirname}/test4.png`;
+let logoFile = `${__dirname}/test.gif`;
+let logoXPos = 0;
+let logoYPos = 0;
 let logoWidth = 100;
 
 const pdf = new FPDF('P', 'mm', 'A4');

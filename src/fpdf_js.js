@@ -2,6 +2,8 @@ const { substr_count, strtolower, strtoupper, str_replace, strlen, is_string, is
     chr, function_exists, count, ord, sprintf, is_array, gzcompress, gzuncompress, file, str_repeat } = require('./PHP_CoreFunctions')
 const fs = require('fs')
 const LoadJpeg = require('./ImageManager/Jpeg');
+const LoadPng = require('./ImageManager/png');
+const LoadGif = require('./ImageManager/gif');
 const Code128 = require('./extends/code128')
 const Code39 = require('./extends/code39')
 const { EAN13, UPC_A } = require('./extends/codeEAN')
@@ -2017,221 +2019,45 @@ class FPDF {
 
     _parsepng(file) {
 
-        const f = fs.openSync(file)
-        const info = this._parsepngstream(f, file)
-        fs.closeSync(f)
-        return info
+        const imageData = LoadPng(file)
 
+        if (!imageData) {
+            this.Error('Missing or incorrect image file: ' + file);
+        }
+
+        if ('PDFVersion' in imageData) {
+
+            if (this.PDFVersion < imageData['PDFVersion']) {
+                this.PDFVersion = `${imageData['PDFVersion']}`;
+            }
+
+            delete imageData['PDFVersion']
+        }
+
+        return imageData
     }
 
-    _parsepngstream(f, file) {
+    _parsegif(file) {
 
-        // Check signature
-        if (this._readstream(f, 8) !== `${chr(137)}PNG${chr(13)}${chr(10)}${chr(26)}${chr(10)}`) {
-            this.Error('Not a PNG file: ' + file);
+        // try create a png file from gif file
+        const imageData = LoadGif(file)
+
+        if (!imageData) {
+            this.Error('Missing or incorrect image file: ' + file);
         }
-
-        // Read header chunk
-        this._readstream(f, 4)
-        if (this._readstream(f, 4) !== 'IHDR') {
-            this.Error('Incorrect PNG file: ' + file);
-        }
-
-        let w = this._readint(f);
-        let h = this._readint(f);
-        let bpc = ord(this._readstream(f, 1, true));
-        if (bpc > 8) {
-            this.Error('16-bit depth not supported: ' + file);
-        }
-
-        let ct = ord(this._readstream(f, 1, true));
-        let colspace
-        if (ct === 0 || ct === 4) {
-            colspace = 'DeviceGray';
-        } else if (ct === 2 || ct === 6) {
-            colspace = 'DeviceRGB';
-        } else if (ct === 3) {
-            colspace = 'Indexed';
-        } else {
-            this.Error('Unknown color type: ' + file);
-        }
-
-        if (ord(this._readstream(f, 1)) !== 0) {
-            this.Error('Unknown compression method: ' + file);
-        }
-        if (ord(this._readstream(f, 1)) !== 0) {
-            this.Error('Unknown filter method: ' + file);
-        }
-        if (ord(this._readstream(f, 1)) !== 0) {
-            this.Error('Interlacing not supported: ' + file);
-        }
-
-        this._readstream(f, 4);
-        let dp = `/Predictor 15 /Colors ${(colspace == 'DeviceRGB' ? 3 : 1)} /BitsPerComponent ${bpc} /Columns ${w}`;
-
-        // Scan chunks looking for palette, transparency and image data
-        let pal = '';
-        let trns = '';
-        let data = '';
-        let n
-        do {
-
-            n = this._readint(f);
-            let type = this._readstream(f, 4, true);
-            if (type === 'PLTE') {
-                // Read palette
-                pal = this._readstream(f, n);
-                this._readstream(f, 4);
-
-            } else if (type === 'tRNS') {
-                // Read transparency info
-                let t = this._readstream(f, n);
-                if (ct === 0) {
-                    trns = [ord(substr(t, 1, 1))]
-                } else if (ct == 2) {
-                    trns = [ord(substr(t, 1, 1)), ord(substr(t, 3, 1)), ord(substr(t, 5, 1))];
-                } else {
-                    let pos = strpos(t, chr(0));
-                    if (pos !== -1) {
-                        trns = [pos];
-                    }
-
-                }
-                this._readstream(f, 4);
-            } else if (type === 'IDAT') {
-                // Read image data block
-                data += this._readstream(f, n, true);
-                this._readstream(f, 4);
-            } else if (type == 'IEND') {
-                break;
-            } else {
-                this._readstream(f, n + 4);
-            }
-
-        } while (n);
-
-        if (colspace == 'Indexed' && !pal) {
-            this.Error('Missing palette in ' + file);
-        }
-
-        let info = { 'w': w, 'h': h, 'cs': colspace, 'bpc': bpc, 'f': 'FlateDecode', 'dp': dp, 'pal': pal, 'trns': trns };
-
-        if (ct >= 4) {
-
-            // Extract alpha channel
-            if (!function_exists('zlib')) {
-                this.Error('Zlib not available, can\'t handle alpha channel: ' + file);
-            }
-
-            data = gzuncompress(data);
-            let color = '';
-            let alpha = '';
-
-            if (ct === 4) {
-                // Gray image
-                let len = 2 * w;
-                for (let i = 0; i < h; i++) {
-                    let pos = (1 + len) * i;
-                    color += data[pos];
-                    alpha += data[pos];
-
-                    let line = substr(data, pos + 1, len);
-                    color += str_replace(/(.)./s, '$1', line) //line.replace(/(.)./s,'$1');
-                    alpha += str_replace(/(.)./s, '$1', line)  //line.replace(/.(.)/s,'$1');
-                }
-
-            } else {
-                // RGB image
-                let len = 4 * w;
-                for (let i = 0; i < h; i++) {
-                    let pos = (1 + len) * i;
-                    color += data[pos]
-                    alpha += data[pos]
-
-                    let line = substr(data, pos + 1, len);
-
-                    color += str_replace(/(.{3})./s, '$1', line) //line.replace(,'$1');
-                    alpha += str_replace(/(.{3})./s, '$1', line) //line.replace(/.{3}(.)/s,'$1');
-
-                }
-            }
-
-            data = undefined
-            data = gzcompress(color);
-            info['smask'] = gzcompress(alpha);
-            this.WithAlpha = true;
-            if (this.PDFVersion < '1.4') {
-                this.PDFVersion = '1.4';
-            }
-
-        }
-
-        info['data'] = data;
-        return info
-
-    }
-
-    _readstream(f, n, lConver = true, Encode = 'binary') {
-
-        // Read n bytes from stream
-        let res = (lConver) ? '' : null;
-
-        while (n > 0) {
-            let buffer = Buffer.alloc ? Buffer.alloc(n) : new Buffer(n);
-            let read = fs.readSync(f, buffer, 0, n);
-
-            if (!read) {
-                this.Error('Error while reading stream');
-            }
-
-            n -= read;
-            if (lConver) {
-                res += buffer.toString(Encode);
-            } else {
-                res = buffer
-            }
-
-        }
-
-        if (n > 0) {
-            this.Error('Unexpected end of stream');
-        }
-
-        return res;
-
-    }
-
-    _readint(f) {
-
-        // Read a 4-byte integer from stream
-        const a = this._readstream(f, 4, false);
-        return a.readInt32BE()
-
-    }
-
-    _parsegif($file) {   /*
         // Extract info from a GIF file (via PNG conversion)
-        if(!function_exists('imagepng'))
-            $this->Error('GD extension is required for GIF support');
-        if(!function_exists('imagecreatefromgif'))
-            $this->Error('GD has no GIF read support');
-        $im = imagecreatefromgif($file);
-        if(!$im)
-            $this->Error('Missing or incorrect image file: '.$file);
-        imageinterlace($im,0);
-        ob_start();
-        imagepng($im);
-        $data = ob_get_clean();
-        imagedestroy($im);
-        $f = fopen('php://temp','rb+');
-        if(!$f)
-            $this->Error('Unable to create memory stream');
-        fwrite($f,$data);
-        rewind($f);
-        $info = $this->_parsepngstream($f,$file);
-        fclose($f);
-        return $info;
-        */
+        const pngImage = LoadPng(imageData)
+        if ('PDFVersion' in pngImage) {
+
+            if (this.PDFVersion < pngImage['PDFVersion']) {
+                this.PDFVersion = `${pngImage['PDFVersion']}`;
+            }
+
+            delete pngImage['PDFVersion']
+        }
+
+        return pngImage
+
     }
 
     _out(s) {
@@ -3124,8 +2950,8 @@ class FPDF {
     }
 
     /**
-     * Generates a Code 39 barcode at the specified position.
-     *
+     * The function Code39 generates a Code 39 barcode and displays it on a PDF document at the specified
+     * coordinates.
      * @param {number} x - The X-coordinate of the starting position.
      * @param {number} y - The Y-coordinate of the starting position.
      * @param {string} code - The Code 39 barcode content.
@@ -3141,8 +2967,8 @@ class FPDF {
     }
 
     /**
-     * Generates an Interleaved 2 of 5 (I25) barcode at the specified position.
-     *
+     *The function i25 Generates an Interleaved 2 of 5 (I25) barcode and displays it on a PDF document at the specified
+     * coordinates.
      * @param {number} xpos - The X-coordinate of the starting position.
      * @param {number} ypos - The Y-coordinate of the starting position.
      * @param {string} code - The Interleaved 2 of 5 (I25) barcode content.
@@ -3155,8 +2981,7 @@ class FPDF {
     }
 
     /**
-     * Rotates the current drawing context by the specified angle around the specified coordinates.
-     *
+     *The function Rotate Rotates the current drawing context by the specified angle around the specified coordinates.
      * @param {number} angle - The angle of rotation in degrees.
      * @param {number} [x=-1] - The X-coordinate of the rotation center. If not provided, the current X-coordinate is used.
      * @param {number} [y=-1] - The Y-coordinate of the rotation center. If not provided, the current Y-coordinate is used.
@@ -3184,8 +3009,7 @@ class FPDF {
     }
 
     /**
-     * Draws rotated text at the specified coordinates and angle.
-     *
+     *The function RotatedText draws rotated text at the specified coordinates and angle.
      * @param {number} x - The X-coordinate of the text.
      * @param {number} y - The Y-coordinate of the text.
      * @param {string} txt - The text to be drawn.
@@ -3200,8 +3024,7 @@ class FPDF {
     }
 
     /**
-     * Draws a rotated image at the specified coordinates, size, and angle.
-     *
+     *The function RotatedImage draws a rotated image at the specified coordinates, size, and angle.
      * @param {string} file - The file path or URL of the image.
      * @param {number} x - The X-coordinate of the upper-left corner of the image.
      * @param {number} y - The Y-coordinate of the upper-left corner of the image.
@@ -3218,8 +3041,7 @@ class FPDF {
     }
 
     /**
-     * Sets a watermark on the document.
-     *
+     *The function SetWatermark sets a watermark on the document.
      * @param {string} Watermark - The text to be used as the watermark.
      * @returns {void}
      */
@@ -3240,8 +3062,7 @@ class FPDF {
     }
 
     /**
-     * Draws a line graph on the document.
-     *
+     *The function LineGraph draws a line graph on the document.
      * @param {number} w - The width of the graph.
      * @param {number} h - The height of the graph.
      * @param {Array} data - An array representing the data points for the graph.
@@ -3256,8 +3077,7 @@ class FPDF {
     }
 
     /**
-     * Draws a cell with a shadow effect.
-     *
+     *The function ShadowCell draws a cell with a shadow effect.
      * @param {number} w - The width of the cell.
      * @param {number} [h=0] - The height of the cell. If not provided, it is determined by the height of the last cell.
      * @param {string} [txt=''] - The text to be placed in the cell.
@@ -3451,6 +3271,7 @@ class FPDF {
     Add_Label(text = '') {
         return _Add_Label(this, text)
     }
+
 }
 
 module.exports = FPDF

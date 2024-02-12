@@ -60,7 +60,8 @@ const in_array = (key, obj) => {
 const function_exists = (cModule) => {
 
     try {
-        const test = require(cModule)
+        //const test = require(cModule)
+        require.resolve(cModule);
         return true
     } catch (error) {
         return false
