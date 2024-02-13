@@ -143,7 +143,6 @@ class FPDF {
                 break;
             default:
                 this.Error(`Incorrect unit: ${unit}`);
-
                 break;
         }
 
@@ -508,19 +507,15 @@ class FPDF {
      */
     DrawGrid() {
 
-        let spacing
-
-        if (this.grid === true) {
-            spacing = 5;
-        } else {
-            spacing = this.grid;
-        }
+        const spacing = (this.grid === true) ? 5 : this.grid
 
         this.SetDrawColor(204, 255, 255);
         this.SetLineWidth(0.35);
+
         for (let i = 0; i < this.w; i += spacing) {
             this.Line(i, 0, i, this.h);
         }
+
         for (let i = 0; i < this.h; i += spacing) {
             this.Line(0, i, this.w, i);
         }
@@ -529,17 +524,22 @@ class FPDF {
 
         let x = this.GetX();
         let y = this.GetY();
+
         this.SetFont('Arial', 'I', 8);
         this.SetTextColor(204, 204, 204);
+
         for (let i = 20; i < this.h; i += 20) {
             this.SetXY(1, i - 3);
             this.Write(4, `${i}`);
         }
+
         for (let i = 20; i < ((this.w) - (this.rMargin) - 10); i += 20) {
             this.SetXY(i - 1, 1);
             this.Write(4, `${i}`);
         }
+
         this.SetXY(x, y);
+
     }
 
     /**
@@ -1589,6 +1589,18 @@ class FPDF {
             h = -96;
         }
 
+        if (w === -1) {
+            // Set image width to whatever value for dpi we read
+            // from the image or that was set manually
+            w = -info.dpi
+        }
+
+        if (h === -1) {
+            // Set image height to whatever value for dpi we read
+            // from the image or that was set manually
+            h = -info.dpi
+        }
+
         if (w < 0) { w = -info['w'] * 72 / w / this.k; }
         if (h < 0) { h = -info['h'] * 72 / h / this.k; }
         if (w === 0) { w = h * info['w'] / info['h']; }
@@ -2033,6 +2045,11 @@ class FPDF {
 
             delete imageData['PDFVersion']
         }
+
+        //update alpha variable
+        this.WithAlpha = imageData['WithAlpha']
+        //delete key
+        delete imageData['WithAlpha']
 
         return imageData
     }
@@ -2504,6 +2521,7 @@ class FPDF {
 
         // Palette
         if (info['cs'] === 'Indexed') {
+
             this._putstreamobject(info['pal']);
         }
 

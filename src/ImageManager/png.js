@@ -1,8 +1,8 @@
-const { chr, ord, str_replace, substr, function_exists, gzcompress, gzuncompress } = require('../PHP_CoreFunctions')
+const { chr, ord, str_replace, substr, function_exists, gzcompress, gzuncompress, strpos } = require('../PHP_CoreFunctions')
 const customReadBuffer = require('./customReadBuffer')
 const fs = require('fs')
 
-const LoadPng = (src) => {
+const LoadPng = (src, readdpi = true) => {
 
     let imagedata
 
@@ -36,49 +36,33 @@ const LoadPng = (src) => {
     if (header !== 'IHDR') {
         throw 'Incorrect PNG file: ' + file
     }
-    
+
     const w = imageReader.readint();
     const h = imageReader.readint();
- 
-    const bpc = ord(imageReader.readEncodeData(1));
+
+    const bpc = imageReader.readint8() //ord(imageReader.readEncodeData(1));
     if (bpc > 8) {
         throw '16-bit depth not supported: ' + file
     }
 
-    const ct = ord(imageReader.readEncodeData(1));
- 
-    let colspace
-    if (ct === 0 || ct === 4) {
-        colspace = 'DeviceGray';
-    } else if (ct === 2 || ct === 6) {
-        colspace = 'DeviceRGB';
-    } else if (ct === 3) {
-        colspace = 'Indexed';
-    } else {
-        throw 'Unknown color type: ' + file
-    }
+    const ct = imageReader.readint8() //ord(imageReader.readEncodeData(1));
+    const { colorVal, colspace } = pngColorSpace(ct)
 
-    if (ord(imageReader.readEncodeData(1)) !== 0) {
-        throw 'Unknown compression method: ' + file
-    }
+    if (imageReader.readint8() !== 0) { throw 'Unknown compression method: ' + file }
 
-    if (ord(imageReader.readEncodeData(1)) !== 0) {
-        throw 'Unknown filter method: ' + file
-    }
+    if (imageReader.readint8() !== 0) { throw 'Unknown filter method: ' + file }
 
-    if (ord(imageReader.readEncodeData(1)) !== 0) {
-        throw 'Interlacing not supported: ' + file
-    }
-
+    if (imageReader.readint8() !== 0) { throw 'Interlacing not supported: ' + file }
 
     imageReader.skip(4)
-    const dp = `/Predictor 15 /Colors ${(colspace == 'DeviceRGB' ? 3 : 1)} /BitsPerComponent ${bpc} /Columns ${w}`;
+    const dp = `/Predictor 15 /Colors ${colorVal} /BitsPerComponent ${bpc} /Columns ${w}`;
 
     // Scan chunks looking for palette, transparency and image data
     let pal = '';
     let trns = '';
     let data = '';
     let n
+    let dpi
 
     do {
 
@@ -114,8 +98,25 @@ const LoadPng = (src) => {
             data += imageReader.readEncodeData(n);
             imageReader.skip(4)
 
-        } else if (type == 'IEND') {
+        } else if (type === 'IEND') {
             break;
+        } else if (type === "pHYs") {
+   
+            const x = imageReader.readint()//int(r.i32())
+            const y = imageReader.readint()//int(r.i32())
+            const units = imageReader.readint8()// r.u8()
+
+            if (x == y && readdpi) {
+                switch (units) {
+                    // if units is 1 then measurement is px/meter
+                    case 1:
+                        dpi = x / 39.3701 // inches per meter
+                    default:
+                        dpi = x
+                }
+            }
+
+            imageReader.skip(4)
         } else {
             imageReader.skip(n + 4)
             //readstream(imagedata, n + 4);
@@ -127,7 +128,8 @@ const LoadPng = (src) => {
         throw 'Missing palette in ' + file
     }
 
-    let info = { 'w': w, 'h': h, 'cs': colspace, 'bpc': bpc, 'f': 'FlateDecode', 'dp': dp, 'pal': pal, 'trns': trns };
+    let info = { 'w': w, 'h': h, 'cs': colspace, 'bpc': bpc, 'f': 'FlateDecode', 'dp': dp, 'pal': pal, 'trns': trns, dpi };
+
 
     if (ct >= 4) {
 
@@ -137,6 +139,7 @@ const LoadPng = (src) => {
         }
 
         data = gzuncompress(data);
+
         let color = '';
         let alpha = '';
 
@@ -172,10 +175,13 @@ const LoadPng = (src) => {
         data = undefined
         data = gzcompress(color);
         info['smask'] = gzcompress(alpha);
-        this.WithAlpha = true;
 
         info['PDFVersion'] = 1.4
+        
 
+        info['WithAlpha'] = true
+    } else {
+        info['WithAlpha'] = false
     }
 
     info['data'] = data;
@@ -184,6 +190,31 @@ const LoadPng = (src) => {
 
 }
 
+
+const pngColorSpace = (ct) => {
+
+    let colorVal = 1
+    let colspace = ""
+
+    switch (ct) {
+        case 0:
+        case 4:
+            colspace = "DeviceGray"
+            break
+        case 2:
+        case 6:
+            colspace = "DeviceRGB"
+            colorVal = 3
+            break
+        case 3:
+            colspace = "Indexed"
+            break
+        default:
+            throw `unknown color type in PNG buffer:${ct}`
+    }
+
+    return { colorVal, colspace }
+}
 
 
 module.exports = LoadPng

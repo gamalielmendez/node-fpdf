@@ -1,5 +1,6 @@
 
 const fs = require('fs');
+const customReadBuffer = require('./customReadBuffer')
 
 const MARKERS = [0xffc0, 0xffc1, 0xffc2, 0xffc3, 0xffc5, 0xffc6, 0xffc7, 0xffc8, 0xffc9, 0xffca, 0xffcb, 0xffcc, 0xffcd, 0xffce, 0xffcf];
 
@@ -29,11 +30,14 @@ const LoadJpeg = (src) => {
         }
     }
 
-    if (data[0] !== 0xff || data[1] !== 0xd8) {
+    const imageReader = new customReadBuffer(data)
+
+    const Signature = imageReader.readChunk(2)
+    if (Signature[0] !== 0xff || Signature[1] !== 0xd8) {
         throw new Error('Unknown image format.');
     }
 
-    if (data.readUInt16BE(0) !== 0xffd8) {
+    if (Signature.readUInt16BE(0) !== 0xffd8) {
         throw 'SOI not found in JPEG';
     }
 
@@ -41,14 +45,15 @@ const LoadJpeg = (src) => {
     let pos = 2;
     while (pos < data.length) {
 
-        marker = data.readUInt16BE(pos);
+        marker = imageReader.readUInt16dBEByPos(pos);
 
         pos += 2;
         if (MARKERS.includes(marker)) {
             break;
         }
-        pos += data.readUInt16BE(pos);
 
+        pos += imageReader.readUInt16dBEByPos(pos);
+   
     }
 
     if (!MARKERS.includes(marker)) {
@@ -57,9 +62,9 @@ const LoadJpeg = (src) => {
 
     pos += 2;
     const bits = data[pos++];
-    const height = data.readUInt16BE(pos);
+    const height = imageReader.readUInt16dBEByPos(pos);
     pos += 2;
-    const width = data.readUInt16BE(pos);
+    const width = imageReader.readUInt16dBEByPos(pos);
     pos += 2;
 
     const channels = data[pos++];

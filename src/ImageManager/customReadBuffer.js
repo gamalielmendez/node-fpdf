@@ -56,6 +56,11 @@ class customReadBuffer {
         const readData = this.readChunk(2);
         return readData.readUInt16BE()
     }
+    
+    readUInt16dBEByPos(pos) {
+        return this.buffer.readUInt16BE(pos)
+    }
+
 
     curretByte() {
         return this.buffer[this.bytesRead]
