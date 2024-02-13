@@ -19,9 +19,9 @@ const deinterlace = (pixels, width) => {
     const offsets = [0, 4, 2, 1]
     const steps = [8, 8, 4, 2]
 
-    var fromRow = 0
-    for (var pass = 0; pass < 4; pass++) {
-        for (var toRow = offsets[pass]; toRow < rows; toRow += steps[pass]) {
+    let fromRow = 0
+    for (let pass = 0; pass < 4; pass++) {
+        for (let toRow = offsets[pass]; toRow < rows; toRow += steps[pass]) {
             cpRow(toRow, fromRow)
             fromRow++
         }

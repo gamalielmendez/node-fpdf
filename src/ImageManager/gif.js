@@ -110,7 +110,7 @@ const decompressFrame = (frame, gct, buildImagePatch) => {
   // get the number of pixels
   const totalPixels = image.descriptor.width * image.descriptor.height
   // do lzw decompression
-  var pixels = lzw(image.data.minCodeSize, image.subBlocksSchema, totalPixels)
+  let pixels = lzw(image.data.minCodeSize, image.subBlocksSchema, totalPixels)
 
   // deal with interlacing if necessary
   if (image.lct.interlaced) {

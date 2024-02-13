@@ -12,7 +12,7 @@ const lzw = (minCodeSize, data, pixelCount) => {
     const MAX_STACK_SIZE = 4096
     const nullCode = -1
     const npix = pixelCount
-    var available,
+    let available,
         clear,
         code_mask,
         code_size,
@@ -48,7 +48,7 @@ const lzw = (minCodeSize, data, pixelCount) => {
     }
 
     // Decode GIF pixel stream.
-    var datum, bits, count, first, top, pi, bi
+    //let datum, bits, count, first, top, pi, bi
     datum = bits = count = first = top = pi = bi = 0
     for (i = 0; i < npix;) {
         if (top === 0) {
